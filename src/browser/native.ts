@@ -51,6 +51,10 @@ export function reloadBrowserTab(label: string) {
   return invoke<void>("reload_browser_tab", { label });
 }
 
+export function stopBrowserTab(label: string) {
+  return invoke<void>("stop_browser_tab", { label });
+}
+
 export function goBackBrowserTab(label: string) {
   return invoke<void>("go_back_browser_tab", { label });
 }

@@ -412,6 +412,11 @@ async fn reload_browser_tab(app: tauri::AppHandle, label: String) -> Result<(), 
 }
 
 #[tauri::command]
+async fn stop_browser_tab(app: tauri::AppHandle, label: String) -> Result<(), String> {
+    eval_on_tab(&app, &label, "window.stop()")
+}
+
+#[tauri::command]
 async fn go_back_browser_tab(app: tauri::AppHandle, label: String) -> Result<(), String> {
     eval_on_tab(&app, &label, "history.back()")
 }
@@ -710,6 +715,7 @@ pub fn run() {
             set_active_browser_tab,
             close_browser_tab,
             reload_browser_tab,
+            stop_browser_tab,
             go_back_browser_tab,
             go_forward_browser_tab,
             disable_site_blocking,
