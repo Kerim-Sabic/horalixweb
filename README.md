@@ -39,11 +39,11 @@ Windows builds are published at:
 
 https://github.com/Kerim-Sabic/horalixweb/releases
 
-Latest v0.2.0 assets:
+Latest v3 assets:
 
 ```bash
-curl -LO https://github.com/Kerim-Sabic/horalixweb/releases/latest/download/Horalix-Web-0.2.0.exe
-curl -LO https://github.com/Kerim-Sabic/horalixweb/releases/latest/download/Horalix-Web-0.2.0-Setup.exe
+curl -LO https://github.com/Kerim-Sabic/horalixweb/releases/latest/download/Horalix-Web-v3.exe
+curl -LO https://github.com/Kerim-Sabic/horalixweb/releases/latest/download/Horalix-Web-v3-Setup.exe
 ```
 
 Windows uses the installed Evergreen WebView2 runtime.
@@ -67,7 +67,7 @@ npm run tauri:build
 The Tauri build creates:
 
 - `target/release/horalix-web.exe`
-- `target/release/bundle/nsis/Horalix Web_0.2.0_x64-setup.exe`
+- `target/release/bundle/nsis/Horalix Web_3.0.0_x64-setup.exe`
 
 ## Keyboard Shortcuts
 

@@ -1926,7 +1926,7 @@ function SettingsView({
           />
         </SettingsSection>
 
-        <SettingsSection title="About" description="Horalix Web 0.2.0">
+        <SettingsSection title="About" description="Horalix Web 3.0.0">
           <ul className="shortcut-list">
             <li>Ctrl/Cmd+L focuses the omnibox</li>
             <li>Ctrl/Cmd+T opens a tab</li>

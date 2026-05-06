@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Horalix Maximum Blocker",
   "description": "Bundled Horalix Web ad, tracker, popup, and annoyance blocker.",
-  "version": "0.2.0",
+  "version": "3.0.0",
   "permissions": [
     "declarativeNetRequest",
     "declarativeNetRequestWithHostAccess"

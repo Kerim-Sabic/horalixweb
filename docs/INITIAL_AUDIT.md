@@ -35,7 +35,7 @@ Primary file: `src-tauri/tauri.conf.json`
 
 - Product name: `Horalix Web`
 - Identifier: `com.horalix.web`
-- Version: `0.2.0`
+- Version at audit time: pre-v3 desktop build
 - Window: custom undecorated main window, 1280x820, minimum 900x620
 - Bundle target: NSIS
 - Icons: generated Windows icon set including `icon.ico`

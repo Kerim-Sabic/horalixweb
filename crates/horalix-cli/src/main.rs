@@ -113,7 +113,7 @@ fn print_banner(port: u16) {
   |  _  | (_) | | | (_| | | |>  <     \ V  V /  __/ |_) |
   |_| |_|\___/|_|  \__,_|_|_/_/\_\     \_/\_/ \___|_.__/ 
                    
-  Browser Toolkit v0.2.0
+  Browser Toolkit v3.0.0
   CDP server: ws://127.0.0.1:{}/devtools/browser
 "#, port);
 }
