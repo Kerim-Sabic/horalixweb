@@ -1,23 +1,34 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/h4ckf0r0day/obscura/main/assets/icon.png" alt="Obscura" width="80" />
+  <img src="assets/icon.png" alt="Horalix Web" width="80" />
 </p>
 
-<h2 align="center">Obscura</h2>
+<h2 align="center">Horalix Web</h2>
 
 <p align="center">
-  <strong>The open-source headless browser for AI agents and web scraping.</strong><br>
-  Lightweight, stealthy, and built in Rust.
+  <strong>A Windows-first desktop browser with a fast Rust automation engine.</strong><br>
+  Real WebView2 rendering for everyday browsing, plus lightweight headless tooling for agents and scraping.
 </p>
 
 ---
 
-Obscura is a headless browser engine written in Rust, built for web scraping and AI agent automation. It runs real JavaScript via V8, supports the Chrome DevTools Protocol, and acts as a drop-in replacement for headless Chrome with Puppeteer and Playwright.
+Horalix Web is a desktop browser shell backed by WebView2 for real page rendering. The Rust headless engine remains available for web scraping and AI agent automation. It runs JavaScript via V8, supports the Chrome DevTools Protocol, and can act as a lightweight replacement for headless Chrome in automation workflows.
 
-### Why Obscura over headless Chrome?
+## Desktop Browser
+
+The Horalix Web desktop app lives in `src-tauri/` and the React browser chrome lives in `src/`.
+
+```bash
+npm install
+npm run tauri:dev
+```
+
+The app includes tabs, an address/search bar, navigation controls, private tabs, clear-data controls, Horalix branding, and WebView2-backed page views on Windows.
+
+### Why Horalix Web tooling over headless Chrome?
 
 Designed for automation at scale, not desktop browsing.
 
-| Metric       | Obscura      | Headless Chrome |
+| Metric       | Horalix Web tooling | Headless Chrome |
 |--------------|--------------|------------------|
 | Memory       | **30 MB**    | 200+ MB          |
 | Binary size  | **70 MB**    | 300+ MB          |
@@ -27,9 +38,9 @@ Designed for automation at scale, not desktop browsing.
 | Puppeteer    | **Yes**      | Yes              |
 | Playwright   | **Yes**      | Yes              |
 
-## 🎉 10,000 stars and what's next
+## What's next
 
-I'm working on **Obscura Cloud** the hosted version, with managed infrastructure, residential proxies, and dedicated support. For people who want the engine without operating it themselves.
+I'm working on **Horalix Cloud**, the hosted version with managed infrastructure, residential proxies, and dedicated support. For people who want the engine without operating it themselves.
 
 The open-source engine stays Apache-2.0, fully featured. No feature gating, ever.
 
@@ -39,28 +50,28 @@ The open-source engine stays Apache-2.0, fully featured. No feature gating, ever
 
 ### Download
 
-Grab the latest binary from [Releases](https://github.com/h4ckf0r0day/obscura/releases):
+Grab the latest binary from [Releases](https://github.com/h4ckf0r0day/horalix-web/releases):
 
 ```bash
 # Linux x86_64
-curl -LO https://github.com/h4ckf0r0day/obscura/releases/latest/download/obscura-x86_64-linux.tar.gz
-tar xzf obscura-x86_64-linux.tar.gz
-./obscura fetch https://example.com --eval "document.title"
+curl -LO https://github.com/h4ckf0r0day/horalix-web/releases/latest/download/horalix-x86_64-linux.tar.gz
+tar xzf horalix-x86_64-linux.tar.gz
+./horalix fetch https://example.com --eval "document.title"
 
 # macOS Apple Silicon
-curl -LO https://github.com/h4ckf0r0day/obscura/releases/latest/download/obscura-aarch64-macos.tar.gz
-tar xzf obscura-aarch64-macos.tar.gz
+curl -LO https://github.com/h4ckf0r0day/horalix-web/releases/latest/download/horalix-aarch64-macos.tar.gz
+tar xzf horalix-aarch64-macos.tar.gz
 
 # macOS Intel
-curl -LO https://github.com/h4ckf0r0day/obscura/releases/latest/download/obscura-x86_64-macos.tar.gz
-tar xzf obscura-x86_64-macos.tar.gz
+curl -LO https://github.com/h4ckf0r0day/horalix-web/releases/latest/download/horalix-x86_64-macos.tar.gz
+tar xzf horalix-x86_64-macos.tar.gz
 
 # Windows
 Download the `.zip` from the releases page and extract it manually.
 ```
 
 No Chrome, no Node.js, no dependencies. Release archives include both
-`obscura` and `obscura-worker`; keep them in the same directory for the
+`horalix` and `horalix-worker`; keep them in the same directory for the
 parallel `scrape` command.
 
 Linux release builds target Ubuntu 22.04 so the downloaded binary remains
@@ -69,8 +80,8 @@ usable on common LTS servers with glibc 2.35+.
 ### Build from source
 
 ```bash
-git clone https://github.com/h4ckf0r0day/obscura.git
-cd obscura
+git clone https://github.com/h4ckf0r0day/horalix-web.git
+cd horalix-web
 cargo build --release
 
 # With stealth mode (anti-detection + tracker blocking)
@@ -85,34 +96,34 @@ Requires Rust 1.75+ ([rustup.rs](https://rustup.rs)). First build takes ~5 min (
 
 ```bash
 # Get the page title
-obscura fetch https://example.com --eval "document.title"
+horalix fetch https://example.com --eval "document.title"
 
 # Extract all links
-obscura fetch https://example.com --dump links
+horalix fetch https://example.com --dump links
 
 # Render JavaScript and dump HTML
-obscura fetch https://news.ycombinator.com --dump html
+horalix fetch https://news.ycombinator.com --dump html
 
 # Wait for dynamic content
-obscura fetch https://example.com --wait-until networkidle0
+horalix fetch https://example.com --wait-until networkidle0
 
 # Bound navigation time for slow or broken pages
-obscura fetch https://example.com --timeout 10
+horalix fetch https://example.com --timeout 10
 ```
 
 ### Start the CDP server
 
 ```bash
-obscura serve --port 9222
+horalix serve --port 9222
 
 # With stealth mode (anti-detection + tracker blocking)
-obscura serve --port 9222 --stealth
+horalix serve --port 9222 --stealth
 ```
 
 ### Scrape in parallel
 
 ```bash
-obscura scrape url1 url2 url3 ... \
+horalix scrape url1 url2 url3 ... \
   --concurrency 25 \
   --eval "document.querySelector('h1').textContent" \
   --format json
@@ -174,14 +185,14 @@ await page.evaluate(() => {
   document.querySelector('#password').value = 'admin';
   document.querySelector('form').submit();
 });
-// Obscura handles the POST, follows the 302 redirect, maintains cookies
+// Horalix Web tooling handles the POST, follows the 302 redirect, maintains cookies
 ```
 
 ## Benchmarks
 
 Page load:
 
-| Page | Obscura | Chrome |
+| Page | Horalix Web tooling | Chrome |
 |------|---------|--------|
 | Static HTML | **51 ms** | ~500 ms |
 | JS + XHR + fetch | **84 ms** | ~800 ms |
@@ -207,7 +218,7 @@ Enable with `--features stealth`.
 
 ## CDP API
 
-Obscura implements the Chrome DevTools Protocol for Puppeteer/Playwright compatibility.
+Horalix Web tooling implements the Chrome DevTools Protocol for Puppeteer/Playwright compatibility.
 
 | Domain | Methods |
 |--------|---------|
@@ -222,7 +233,7 @@ Obscura implements the Chrome DevTools Protocol for Puppeteer/Playwright compati
 | **LP** | getMarkdown (DOM-to-Markdown conversion) |
 ## CLI Reference
 
-### `obscura serve`
+### `horalix serve`
 
 Start a CDP WebSocket server.
 
@@ -234,7 +245,7 @@ Start a CDP WebSocket server.
 | `--workers` | `1` | Number of parallel worker processes |
 | `--obey-robots` | off | Respect robots.txt |
 
-### `obscura fetch <URL>`
+### `horalix fetch <URL>`
 
 Fetch and render a single page.
 
@@ -248,7 +259,7 @@ Fetch and render a single page.
 | `--stealth` | off | Anti-detection mode |
 | `--quiet` | off | Suppress banner |
 
-### `obscura scrape <URL...>`
+### `horalix scrape <URL...>`
 
 Scrape multiple URLs in parallel with worker processes.
 

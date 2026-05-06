@@ -1,26 +1,27 @@
 [workspace]
 resolver = "2"
 members = [
-    "crates/obscura-dom",
-    "crates/obscura-net",
-    "crates/obscura-browser",
-    "crates/obscura-cdp",
-    "crates/obscura-js",
-    "crates/obscura-cli",
+    "crates/horalix-dom",
+    "crates/horalix-net",
+    "crates/horalix-browser",
+    "crates/horalix-cdp",
+    "crates/horalix-js",
+    "crates/horalix-cli",
+    "src-tauri",
 ]
 
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
 license = "Apache-2.0"
-repository = "https://github.com/h4ckf0r0day/obscura"
+repository = "https://github.com/h4ckf0r0day/horalix-web"
 
 [workspace.dependencies]
-obscura-dom = { path = "crates/obscura-dom" }
-obscura-net = { path = "crates/obscura-net" }
-obscura-browser = { path = "crates/obscura-browser" }
-obscura-cdp = { path = "crates/obscura-cdp" }
-obscura-js = { path = "crates/obscura-js" }
+horalix-dom = { path = "crates/horalix-dom" }
+horalix-net = { path = "crates/horalix-net" }
+horalix-browser = { path = "crates/horalix-browser" }
+horalix-cdp = { path = "crates/horalix-cdp" }
+horalix-js = { path = "crates/horalix-js" }
 
 html5ever = "0.29"
 markup5ever = "0.14"

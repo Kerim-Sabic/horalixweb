@@ -1,0 +1,31 @@
+[package]
+name = "horalix-cli"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "horalix"
+path = "src/main.rs"
+
+[[bin]]
+name = "horalix-worker"
+path = "src/worker.rs"
+
+[features]
+default = []
+stealth = ["horalix-browser/stealth", "horalix-net/stealth"]
+
+[dependencies]
+horalix-browser = { workspace = true }
+horalix-cdp = { workspace = true }
+horalix-dom = { workspace = true }
+horalix-net = { workspace = true }
+horalix-js = { workspace = true }
+tokio = { workspace = true }
+clap = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+url = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
