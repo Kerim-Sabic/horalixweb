@@ -22,7 +22,11 @@ npm install
 npm run tauri:dev
 ```
 
-The app includes tabs, an address/search bar, navigation controls, private tabs, clear-data controls, Horalix branding, and WebView2-backed page views on Windows.
+The app includes tabs, an address/search bar, navigation controls, private tabs, maximum ad/tracker blocking, clear-data controls, Horalix branding, auto light/dark chrome, and WebView2-backed page views on Windows.
+
+### Horalix Web 0.2.0
+
+Version 0.2.0 is the first polished Windows desktop release. It ships the corrected Windows icon set, a cleaner Apple-inspired browser shell, faster WebView2 prewarming, and bundled maximum blocking for ads, trackers, popups, and common annoyances.
 
 ### Why Horalix Web tooling over headless Chrome?
 
@@ -50,38 +54,23 @@ The open-source engine stays Apache-2.0, fully featured. No feature gating, ever
 
 ### Download
 
-Grab the latest binary from [Releases](https://github.com/h4ckf0r0day/horalix-web/releases):
+Grab the latest Windows build from [Releases](https://github.com/Kerim-Sabic/horalixweb/releases):
 
 ```bash
-# Linux x86_64
-curl -LO https://github.com/h4ckf0r0day/horalix-web/releases/latest/download/horalix-x86_64-linux.tar.gz
-tar xzf horalix-x86_64-linux.tar.gz
-./horalix fetch https://example.com --eval "document.title"
+# Windows standalone executable
+curl -LO https://github.com/Kerim-Sabic/horalixweb/releases/latest/download/Horalix-Web-0.2.0.exe
 
-# macOS Apple Silicon
-curl -LO https://github.com/h4ckf0r0day/horalix-web/releases/latest/download/horalix-aarch64-macos.tar.gz
-tar xzf horalix-aarch64-macos.tar.gz
-
-# macOS Intel
-curl -LO https://github.com/h4ckf0r0day/horalix-web/releases/latest/download/horalix-x86_64-macos.tar.gz
-tar xzf horalix-x86_64-macos.tar.gz
-
-# Windows
-Download the `.zip` from the releases page and extract it manually.
+# Windows installer
+curl -LO https://github.com/Kerim-Sabic/horalixweb/releases/latest/download/Horalix-Web-0.2.0-Setup.exe
 ```
 
-No Chrome, no Node.js, no dependencies. Release archives include both
-`horalix` and `horalix-worker`; keep them in the same directory for the
-parallel `scrape` command.
-
-Linux release builds target Ubuntu 22.04 so the downloaded binary remains
-usable on common LTS servers with glibc 2.35+.
+No Chrome or Node.js is required for the desktop app. Windows uses the installed Evergreen WebView2 runtime.
 
 ### Build from source
 
 ```bash
-git clone https://github.com/h4ckf0r0day/horalix-web.git
-cd horalix-web
+git clone https://github.com/Kerim-Sabic/horalixweb.git
+cd horalixweb
 cargo build --release
 
 # With stealth mode (anti-detection + tracker blocking)

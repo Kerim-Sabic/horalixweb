@@ -4,9 +4,9 @@ pub async fn handle(method: &str, _params: &Value) -> Result<Value, String> {
     match method {
         "getVersion" => Ok(json!({
             "protocolVersion": "1.3",
-            "product": "Horalix Web/0.1.0",
+            "product": "Horalix Web/0.2.0",
             "revision": "0",
-            "userAgent": "Horalix Web/0.1.0 (Headless Browser)",
+            "userAgent": "Horalix Web/0.2.0 (Headless Browser)",
             "jsVersion": "N/A",
         })),
         "close" => {

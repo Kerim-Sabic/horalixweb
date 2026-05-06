@@ -3,6 +3,7 @@ import { listen } from "@tauri-apps/api/event";
 
 import type {
   BrowserBounds,
+  NativePrivacyEvent,
   NativeTabEvent,
   NativeTitleEvent,
   NavigationDecision,
@@ -17,6 +18,14 @@ export function createBrowserTab(args: {
   isPrivate: boolean;
 }) {
   return invoke<NavigationDecision>("create_browser_tab", args);
+}
+
+export function prewarmBrowserTab(args: {
+  label: string;
+  bounds: BrowserBounds;
+  isPrivate: boolean;
+}) {
+  return invoke<void>("prewarm_browser_tab", args);
 }
 
 export function navigateBrowserTab(args: { label: string; input: string }) {
@@ -50,6 +59,10 @@ export function goForwardBrowserTab(label: string) {
   return invoke<void>("go_forward_browser_tab", { label });
 }
 
+export function disableSiteBlocking(label: string, host: string) {
+  return invoke<void>("disable_site_blocking", { label, host });
+}
+
 export function clearBrowserData(labels: string[]) {
   return invoke<void>("clear_browser_data", { labels });
 }
@@ -60,4 +73,8 @@ export function onNativeTabEvent(callback: (event: NativeTabEvent) => void) {
 
 export function onNativeTitleEvent(callback: (event: NativeTitleEvent) => void) {
   return listen<NativeTitleEvent>("horalix://tab-title", ({ payload }) => callback(payload));
+}
+
+export function onNativePrivacyEvent(callback: (event: NativePrivacyEvent) => void) {
+  return listen<NativePrivacyEvent>("horalix://privacy-event", ({ payload }) => callback(payload));
 }

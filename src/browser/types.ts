@@ -21,6 +21,8 @@ export type BrowserTab = {
   canGoForward: boolean;
   history: string[];
   historyIndex: number;
+  blockedCount: number;
+  blockingDisabled: boolean;
   error?: string;
 };
 
@@ -28,6 +30,7 @@ export type NavigationDecision = {
   url: string;
   blocked: boolean;
   reason: string | null;
+  blockedCount: number;
 };
 
 export type NativeTabEvent = {
@@ -35,9 +38,15 @@ export type NativeTabEvent = {
   url: string;
   title: string | null;
   status: "loading" | "ready" | "blocked" | "error";
+  blockedCount: number;
 };
 
 export type NativeTitleEvent = {
   label: string;
   title: string;
+};
+
+export type NativePrivacyEvent = {
+  label: string;
+  blockedCount: number;
 };

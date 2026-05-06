@@ -1807,7 +1807,7 @@ dependencies = [
 
 [[package]]
 name = "horalix-browser"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "futures",
@@ -1823,7 +1823,7 @@ dependencies = [
 
 [[package]]
 name = "horalix-cdp"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "futures-util",
@@ -1843,7 +1843,7 @@ dependencies = [
 
 [[package]]
 name = "horalix-cli"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1862,7 +1862,7 @@ dependencies = [
 
 [[package]]
 name = "horalix-dom"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "cssparser 0.34.0",
  "html5ever 0.29.1",
@@ -1876,7 +1876,7 @@ dependencies = [
 
 [[package]]
 name = "horalix-js"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -1896,7 +1896,7 @@ dependencies = [
 
 [[package]]
 name = "horalix-net"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "async-trait",
  "reqwest 0.12.28",
@@ -1912,7 +1912,7 @@ dependencies = [
 
 [[package]]
 name = "horalix-web"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "horalix-net",
  "serde",

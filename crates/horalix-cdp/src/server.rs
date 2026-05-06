@@ -486,9 +486,9 @@ fn fast_path_response(text: &str) -> Option<String> {
         "Browser.getVersion" => {
             Some(json!({
                 "protocolVersion": "1.3",
-                "product": "Horalix Web/0.1.0",
+                "product": "Horalix Web/0.2.0",
                 "revision": "0",
-                "userAgent": "Horalix Web/0.1.0",
+                "userAgent": "Horalix Web/0.2.0",
                 "jsVersion": "V8",
             }))
         }
@@ -611,9 +611,9 @@ async fn handle_http_json(stream: TcpStream, port: u16, endpoint: &str) -> anyho
 
     let body = match endpoint {
         "version" => serde_json::to_string_pretty(&json!({
-            "Browser": "Horalix Web/0.1.0",
+            "Browser": "Horalix Web/0.2.0",
             "Protocol-Version": "1.3",
-            "User-Agent": "Horalix Web/0.1.0 (Headless Browser)",
+            "User-Agent": "Horalix Web/0.2.0 (Headless Browser)",
             "V8-Version": "N/A",
             "WebKit-Version": "N/A",
             "webSocketDebuggerUrl": format!("ws://127.0.0.1:{}/devtools/browser", port),
