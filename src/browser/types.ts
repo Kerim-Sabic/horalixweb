@@ -17,6 +17,7 @@ export type NativeTabEvent = {
   url: string;
   title: string | null;
   status: "loading" | "ready" | "blocked" | "error";
+  reason?: string | null;
   blockedCount: number;
 };
 

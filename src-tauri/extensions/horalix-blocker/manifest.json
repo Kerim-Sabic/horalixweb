@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Horalix Maximum Blocker",
   "description": "Bundled Horalix Web ad, tracker, popup, and annoyance blocker.",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "permissions": [
     "declarativeNetRequest",
     "declarativeNetRequestWithHostAccess"
@@ -33,6 +33,19 @@
         "content.js"
       ],
       "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "*://youtube.com/*",
+        "*://*.youtube.com/*",
+        "*://youtube-nocookie.com/*",
+        "*://*.youtube-nocookie.com/*"
+      ],
+      "js": [
+        "youtube.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
     }
   ]
 }

@@ -6,9 +6,9 @@ Status legend: PASS means the control is visible where appropriate, calls a real
 
 | Control ID | Label | Component/File | Expected Behavior | Handler | Disabled Logic | Shortcut | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `window.minimize` | Minimize | `WindowControls` / `src/App.tsx` | Minimize native window | `handleMinimizeWindow` | Enabled in Tauri; inert in web preview | Alt+Space then N | PASS | Uses Tauri window API |
-| `window.maximize` | Maximize/restore | `WindowControls` / `src/App.tsx` | Toggle native maximized state | `handleToggleMaximizeWindow` | Enabled in Tauri; inert in web preview | Alt+Space then X | PASS | Uses Tauri window API |
-| `window.close` | Close window | `WindowControls` / `src/App.tsx` | Close native window | `handleCloseWindow` | Enabled in Tauri; inert in web preview | Alt+F4 | PASS | Uses Tauri window API |
+| `window.minimize` | Minimize | `WindowControls` / `src/App.tsx` | Minimize native window | `handleMinimizeWindow` | Enabled in Tauri; disabled in web preview | Alt+Space then N | PASS | v3.0.1 uses native Rust command plus explicit Tauri permission |
+| `window.maximize` | Maximize/restore | `WindowControls` / `src/App.tsx` | Toggle native maximized state | `handleToggleMaximizeWindow` | Enabled in Tauri; disabled in web preview | Alt+Space then X | PASS | v3.0.1 uses native Rust command plus explicit Tauri permission |
+| `window.close` | Close window | `WindowControls` / `src/App.tsx` | Close native window | `handleCloseWindow` | Enabled in Tauri; disabled in web preview | Alt+F4 | PASS | v3.0.1 uses native Rust command plus explicit Tauri permission |
 
 ## Tabs
 
@@ -93,4 +93,6 @@ Status legend: PASS means the control is visible where appropriate, calls a real
 
 - `src/dev/buttonRegistry.test.ts` verifies documented button IDs are unique and documented.
 - Runtime button registrations are exposed through `window.__HORALIX_BUTTONS__`.
+- `src-tauri/capabilities/default.json` explicitly grants close, minimize, toggle-maximize, drag, and maximized-state permissions.
+- The titlebar drag region excludes the window-control button area so clicks are not swallowed by native dragging.
 - `npm test` passed the button registry smoke tests.

@@ -46,6 +46,7 @@ import {
 import {
   clearBrowserData,
   closeBrowserTab,
+  closeMainWindow,
   createBrowserTab as createNativeBrowserTab,
   disableSiteBlocking as disableNativeSiteBlocking,
   goBackBrowserTab,
@@ -60,6 +61,8 @@ import {
   resizeBrowserTab,
   setActiveBrowserTab,
   stopBrowserTab,
+  minimizeMainWindow,
+  toggleMaximizeMainWindow,
 } from "./browser/native";
 import type { BrowserBounds, NativeTabEvent } from "./browser/types";
 import {
@@ -270,7 +273,7 @@ export default function App() {
           id: tab.id,
           url: event.url,
           displayUrl,
-          reason: "Blocked by Horalix Maximum Blocking.",
+          reason: event.reason ?? "Blocked by Horalix Maximum Blocking.",
         });
         return;
       }
@@ -906,7 +909,7 @@ export default function App() {
 
 function Titlebar({ productTitle }: { productTitle: string }) {
   return (
-    <div className="titlebar" data-tauri-drag-region>
+    <div className="titlebar">
       <div className="brand-lockup" data-tauri-drag-region>
         <img className="brand-mark" src="/icon.png" alt="" />
         <span>{PRODUCT_NAME}</span>
@@ -920,22 +923,20 @@ function Titlebar({ productTitle }: { productTitle: string }) {
 }
 
 function WindowControls() {
+  const controlsDisabled = !isTauriRuntime;
   const handleMinimizeWindow = useCallback(async () => {
     if (!isTauriRuntime) return;
-    const { getCurrentWindow } = await import("@tauri-apps/api/window");
-    await getCurrentWindow().minimize();
+    await minimizeMainWindow();
   }, []);
 
   const handleToggleMaximizeWindow = useCallback(async () => {
     if (!isTauriRuntime) return;
-    const { getCurrentWindow } = await import("@tauri-apps/api/window");
-    await getCurrentWindow().toggleMaximize();
+    await toggleMaximizeMainWindow();
   }, []);
 
   const handleCloseWindow = useCallback(async () => {
     if (!isTauriRuntime) return;
-    const { getCurrentWindow } = await import("@tauri-apps/api/window");
-    await getCurrentWindow().close();
+    await closeMainWindow();
   }, []);
 
   return (
@@ -944,6 +945,7 @@ function WindowControls() {
         buttonId="window.minimize"
         className="window-button"
         component="WindowControls"
+        disabled={controlsDisabled}
         label="Minimize"
         onClick={() => void handleMinimizeWindow()}
         shortcut="Alt+Space then N"
@@ -954,6 +956,7 @@ function WindowControls() {
         buttonId="window.maximize"
         className="window-button"
         component="WindowControls"
+        disabled={controlsDisabled}
         label="Maximize or restore"
         onClick={() => void handleToggleMaximizeWindow()}
         shortcut="Alt+Space then X"
@@ -964,6 +967,7 @@ function WindowControls() {
         buttonId="window.close"
         className="window-button close-window"
         component="WindowControls"
+        disabled={controlsDisabled}
         label="Close window"
         onClick={() => void handleCloseWindow()}
         shortcut="Alt+F4"
@@ -1926,7 +1930,7 @@ function SettingsView({
           />
         </SettingsSection>
 
-        <SettingsSection title="About" description="Horalix Web 3.0.0">
+        <SettingsSection title="About" description="Horalix Web 3.0.1">
           <ul className="shortcut-list">
             <li>Ctrl/Cmd+L focuses the omnibox</li>
             <li>Ctrl/Cmd+T opens a tab</li>

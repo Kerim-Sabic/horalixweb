@@ -39,11 +39,11 @@ Windows builds are published at:
 
 https://github.com/Kerim-Sabic/horalixweb/releases
 
-Latest v3 assets:
+Latest v3.0.1 hotfix assets:
 
 ```bash
-curl -LO https://github.com/Kerim-Sabic/horalixweb/releases/latest/download/Horalix-Web-v3.exe
-curl -LO https://github.com/Kerim-Sabic/horalixweb/releases/latest/download/Horalix-Web-v3-Setup.exe
+curl -LO https://github.com/Kerim-Sabic/horalixweb/releases/latest/download/Horalix-Web-v3.0.1.exe
+curl -LO https://github.com/Kerim-Sabic/horalixweb/releases/latest/download/Horalix-Web-v3.0.1-Setup.exe
 ```
 
 Windows uses the installed Evergreen WebView2 runtime.
@@ -67,7 +67,7 @@ npm run tauri:build
 The Tauri build creates:
 
 - `target/release/horalix-web.exe`
-- `target/release/bundle/nsis/Horalix Web_3.0.0_x64-setup.exe`
+- `target/release/bundle/nsis/Horalix Web_3.0.1_x64-setup.exe`
 
 ## Keyboard Shortcuts
 
@@ -98,6 +98,7 @@ Horalix Web uses layered privacy controls:
 - Rust native layer blocks known tracker hosts for WebView navigation.
 - Bundled WebView2 MV3 extension uses declarativeNetRequest rules where supported.
 - Cosmetic cleanup hides common ad containers.
+- YouTube uses playback-safe blocking: core video/static hosts stay allowed, while ad overlays, promoted slots, skip buttons, and ad telemetry receive best-effort mitigation.
 - Popups/new windows are denied by default.
 
 See [docs/PRIVACY_MODEL.md](docs/PRIVACY_MODEL.md).
@@ -116,7 +117,7 @@ Horalix Web does not claim impossible browser guarantees:
 
 - WebView2 extension support depends on the installed WebView2 runtime.
 - Full subresource interception from Rust is not available through the portable Tauri API used here.
-- YouTube ad blocking is best-effort only.
+- YouTube ad blocking is best-effort and intentionally prioritizes working video playback over rules that would break `googlevideo.com` media delivery.
 - WebView history availability is approximated in frontend state.
 
 See [docs/TAURI_WEBVIEW_LIMITATIONS.md](docs/TAURI_WEBVIEW_LIMITATIONS.md).

@@ -24,7 +24,7 @@ export const BUTTON_QA_DEFINITIONS: ButtonDefinition[] = [
     component: "WindowControls",
     handlerName: "handleMinimizeWindow",
     shortcut: "Alt+Space then N",
-    expectedDisabledLogic: "Enabled in Tauri runtime; inert in web preview.",
+    expectedDisabledLogic: "Enabled in Tauri runtime; disabled in web preview.",
     expectedBehavior: "Minimizes the native window.",
   },
   {
@@ -33,7 +33,7 @@ export const BUTTON_QA_DEFINITIONS: ButtonDefinition[] = [
     component: "WindowControls",
     handlerName: "handleToggleMaximizeWindow",
     shortcut: "Alt+Space then X",
-    expectedDisabledLogic: "Enabled in Tauri runtime; inert in web preview.",
+    expectedDisabledLogic: "Enabled in Tauri runtime; disabled in web preview.",
     expectedBehavior: "Toggles native window maximized state.",
   },
   {
@@ -42,7 +42,7 @@ export const BUTTON_QA_DEFINITIONS: ButtonDefinition[] = [
     component: "WindowControls",
     handlerName: "handleCloseWindow",
     shortcut: "Alt+F4",
-    expectedDisabledLogic: "Enabled in Tauri runtime; inert in web preview.",
+    expectedDisabledLogic: "Enabled in Tauri runtime; disabled in web preview.",
     expectedBehavior: "Closes the native window.",
   },
   {

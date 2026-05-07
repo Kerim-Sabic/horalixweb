@@ -24,6 +24,7 @@ struct TabEvent {
     url: String,
     title: Option<String>,
     status: TabStatus,
+    reason: Option<String>,
     blocked_count: u32,
 }
 
@@ -52,14 +53,45 @@ struct NavigationDecision {
 }
 
 #[tauri::command]
+fn minimize_main_window(app: tauri::AppHandle) -> Result<(), String> {
+    let window = app
+        .get_window("main")
+        .ok_or_else(|| "Main window was not found".to_string())?;
+    window.minimize().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn toggle_maximize_main_window(app: tauri::AppHandle) -> Result<(), String> {
+    let window = app
+        .get_window("main")
+        .ok_or_else(|| "Main window was not found".to_string())?;
+    if window.is_maximized().map_err(|e| e.to_string())? {
+        window.unmaximize().map_err(|e| e.to_string())
+    } else {
+        window.maximize().map_err(|e| e.to_string())
+    }
+}
+
+#[tauri::command]
+fn close_main_window(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_window("main") {
+        window.close().map_err(|e| e.to_string())
+    } else {
+        app.exit(0);
+        Ok(())
+    }
+}
+
+#[tauri::command]
 fn resolve_navigation_input(input: String) -> Result<NavigationDecision, String> {
     let url = normalize_navigation_input(&input)?;
-    let blocked = is_blocked_top_level(&url);
+    let reason = block_reason_for_top_level(&url);
+    let blocked = reason.is_some();
 
     Ok(NavigationDecision {
         url: url.to_string(),
         blocked,
-        reason: blocked.then(|| "Blocked by the Horalix privacy list".to_string()),
+        reason,
         blocked_count: 0,
     })
 }
@@ -96,7 +128,8 @@ async fn prewarm_browser_tab(
         .disable_drag_drop_handler()
         .initialization_script(HORALIX_INIT_SCRIPT)
         .on_navigation(move |next_url| {
-            let is_blocked = is_blocked_top_level(next_url);
+            let reason = block_reason_for_top_level(next_url);
+            let is_blocked = reason.is_some();
             let status = if is_blocked {
                 increment_blocked_count(&navigation_app, &label_for_navigation);
                 TabStatus::Blocked
@@ -109,6 +142,7 @@ async fn prewarm_browser_tab(
                 next_url,
                 None,
                 status,
+                reason,
             );
             !is_blocked
         })
@@ -124,7 +158,7 @@ async fn prewarm_browser_tab(
                 PageLoadEvent::Started => TabStatus::Loading,
                 PageLoadEvent::Finished => TabStatus::Ready,
             };
-            emit_tab_event(&load_app, &label_for_load, payload.url(), None, status);
+            emit_tab_event(&load_app, &label_for_load, payload.url(), None, status, None);
 
             if matches!(payload.event(), PageLoadEvent::Finished) {
                 let title_app = page_title_app.clone();
@@ -148,7 +182,7 @@ async fn prewarm_browser_tab(
                         merge_blocked_count(&title_app, &label, hidden);
                         let title = title.trim_matches('"').to_string();
                         let parsed_url = Url::parse(&url).unwrap_or_else(|_| about_blank());
-                        emit_tab_event(&title_app, &label, &parsed_url, Some(title), TabStatus::Ready);
+                        emit_tab_event(&title_app, &label, &parsed_url, Some(title), TabStatus::Ready, None);
                     },
                 );
             }
@@ -189,14 +223,14 @@ async fn create_browser_tab(
 ) -> Result<NavigationDecision, String> {
     validate_label(&label)?;
     let url = normalize_navigation_input(&input)?;
-    let blocked = is_blocked_top_level(&url);
-    if blocked {
+    let reason = block_reason_for_top_level(&url);
+    if let Some(reason) = reason {
         increment_blocked_count(&app, &label);
-        emit_tab_event(&app, &label, &url, None, TabStatus::Blocked);
+        emit_tab_event(&app, &label, &url, None, TabStatus::Blocked, Some(reason.clone()));
         return Ok(NavigationDecision {
             url: url.to_string(),
             blocked: true,
-            reason: Some("Blocked by the Horalix privacy list".to_string()),
+            reason: Some(reason),
             blocked_count: blocked_count(&label),
         });
     }
@@ -205,7 +239,7 @@ async fn create_browser_tab(
         resize_webview(&webview, &bounds)?;
         webview.show().map_err(|e| e.to_string())?;
         webview.navigate(url.clone()).map_err(|e| e.to_string())?;
-        emit_tab_event(&app, &label, &url, None, TabStatus::Loading);
+        emit_tab_event(&app, &label, &url, None, TabStatus::Loading, None);
         return Ok(NavigationDecision {
             url: url.to_string(),
             blocked: false,
@@ -234,7 +268,8 @@ async fn create_browser_tab(
         .disable_drag_drop_handler()
         .initialization_script(HORALIX_INIT_SCRIPT)
         .on_navigation(move |next_url| {
-            let is_blocked = is_blocked_top_level(next_url);
+            let reason = block_reason_for_top_level(next_url);
+            let is_blocked = reason.is_some();
             let status = if is_blocked {
                 increment_blocked_count(&navigation_app, &label_for_navigation);
                 TabStatus::Blocked
@@ -247,6 +282,7 @@ async fn create_browser_tab(
                 next_url,
                 None,
                 status,
+                reason,
             );
             !is_blocked
         })
@@ -269,7 +305,7 @@ async fn create_browser_tab(
                 PageLoadEvent::Started => TabStatus::Loading,
                 PageLoadEvent::Finished => TabStatus::Ready,
             };
-            emit_tab_event(&load_app, &label_for_load, payload.url(), None, status);
+            emit_tab_event(&load_app, &label_for_load, payload.url(), None, status, None);
 
             if matches!(payload.event(), PageLoadEvent::Finished) {
                 let title_app = page_title_app.clone();
@@ -292,7 +328,7 @@ async fn create_browser_tab(
                     merge_blocked_count(&title_app, &label, hidden);
                     let title = title.trim_matches('"').to_string();
                     let parsed_url = Url::parse(&url).unwrap_or_else(|_| about_blank());
-                    emit_tab_event(&title_app, &label, &parsed_url, Some(title), TabStatus::Ready);
+                    emit_tab_event(&title_app, &label, &parsed_url, Some(title), TabStatus::Ready, None);
                 });
             }
         })
@@ -320,7 +356,7 @@ async fn create_browser_tab(
         )
         .map_err(|e| e.to_string())?;
 
-    emit_tab_event(&app, &label, &url, None, TabStatus::Loading);
+    emit_tab_event(&app, &label, &url, None, TabStatus::Loading, None);
 
     Ok(NavigationDecision {
         url: url.to_string(),
@@ -338,14 +374,14 @@ async fn navigate_browser_tab(
 ) -> Result<NavigationDecision, String> {
     validate_label(&label)?;
     let url = normalize_navigation_input(&input)?;
-    let blocked = is_blocked_top_level(&url);
-    if blocked {
+    let reason = block_reason_for_top_level(&url);
+    if let Some(reason) = reason {
         increment_blocked_count(&app, &label);
-        emit_tab_event(&app, &label, &url, None, TabStatus::Blocked);
+        emit_tab_event(&app, &label, &url, None, TabStatus::Blocked, Some(reason.clone()));
         return Ok(NavigationDecision {
             url: url.to_string(),
             blocked: true,
-            reason: Some("Blocked by the Horalix privacy list".to_string()),
+            reason: Some(reason),
             blocked_count: blocked_count(&label),
         });
     }
@@ -354,7 +390,7 @@ async fn navigate_browser_tab(
         .get_webview(&label)
         .ok_or_else(|| format!("Webview {label} was not found"))?;
     webview.navigate(url.clone()).map_err(|e| e.to_string())?;
-    emit_tab_event(&app, &label, &url, None, TabStatus::Loading);
+    emit_tab_event(&app, &label, &url, None, TabStatus::Loading, None);
 
     Ok(NavigationDecision {
         url: url.to_string(),
@@ -459,6 +495,7 @@ fn emit_tab_event(
     url: &Url,
     title: Option<String>,
     status: TabStatus,
+    reason: Option<String>,
 ) {
     let _ = app.emit(
         "horalix://tab-event",
@@ -467,6 +504,7 @@ fn emit_tab_event(
             url: url.to_string(),
             title,
             status,
+            reason,
             blocked_count: blocked_count(label),
         },
     );
@@ -559,13 +597,51 @@ fn encode_query(value: &str) -> String {
 }
 
 fn is_blocked_top_level(url: &Url) -> bool {
+    block_reason_for_top_level(url).is_some()
+}
+
+fn block_reason_for_top_level(url: &Url) -> Option<String> {
     if is_site_allowed_for_session(url) {
-        return false;
+        return None;
     }
 
-    url.host_str()
-        .map(horalix_net::is_tracker_blocked)
-        .unwrap_or(false)
+    let host = url.host_str().and_then(normalize_host)?;
+    if is_youtube_playback_host(&host) {
+        return None;
+    }
+
+    if horalix_net::is_tracker_blocked(&host) {
+        Some(format!("Blocked by Horalix privacy list: {host}"))
+    } else {
+        None
+    }
+}
+
+fn is_youtube_playback_host(host: &str) -> bool {
+    const EXACT_HOSTS: &[&str] = &[
+        "youtube.com",
+        "www.youtube.com",
+        "m.youtube.com",
+        "music.youtube.com",
+        "youtu.be",
+        "youtube-nocookie.com",
+        "www.youtube-nocookie.com",
+        "youtubei.googleapis.com",
+        "googlevideo.com",
+        "ytimg.com",
+        "gstatic.com",
+        "ggpht.com",
+        "googleusercontent.com",
+    ];
+    const SUFFIX_HOSTS: &[&str] = &[
+        ".googlevideo.com",
+        ".ytimg.com",
+        ".gstatic.com",
+        ".ggpht.com",
+        ".googleusercontent.com",
+    ];
+
+    EXACT_HOSTS.contains(&host) || SUFFIX_HOSTS.iter().any(|suffix| host.ends_with(suffix))
 }
 
 fn normalize_host(host: &str) -> Option<String> {
@@ -707,6 +783,9 @@ const HORALIX_INIT_SCRIPT: &str = r#"
 pub fn run() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
+            minimize_main_window,
+            toggle_maximize_main_window,
+            close_main_window,
             resolve_navigation_input,
             prewarm_browser_tab,
             create_browser_tab,
@@ -744,6 +823,28 @@ mod tests {
     #[test]
     fn tracker_hosts_are_blocked() {
         let url = Url::parse("https://www.google-analytics.com/analytics.js").unwrap();
+        assert!(is_blocked_top_level(&url));
+    }
+
+    #[test]
+    fn youtube_watch_pages_are_not_blocked() {
+        let url = Url::parse("https://www.youtube.com/watch?v=dQw4w9WgXcQ").unwrap();
+        assert!(!is_blocked_top_level(&url));
+    }
+
+    #[test]
+    fn youtube_media_hosts_are_not_blocked() {
+        let root_video = Url::parse("https://googlevideo.com/videoplayback").unwrap();
+        let video = Url::parse("https://rr1---sn-ab5l6n6s.googlevideo.com/videoplayback").unwrap();
+        let image = Url::parse("https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg").unwrap();
+        assert!(!is_blocked_top_level(&root_video));
+        assert!(!is_blocked_top_level(&video));
+        assert!(!is_blocked_top_level(&image));
+    }
+
+    #[test]
+    fn youtube_ad_hosts_still_block() {
+        let url = Url::parse("https://ads.youtube.com/").unwrap();
         assert!(is_blocked_top_level(&url));
     }
 }

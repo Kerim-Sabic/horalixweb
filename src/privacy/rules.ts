@@ -3,6 +3,7 @@ export const AD_HOSTS = new Set([
   "googlesyndication.com",
   "googleadservices.com",
   "adservice.google.com",
+  "ads.youtube.com",
   "adnxs.com",
   "adsystem.com",
   "ads-twitter.com",
@@ -40,6 +41,30 @@ export const SOCIAL_TRACKER_HOSTS = new Set([
   "tiktok.com",
   "analytics.tiktok.com",
 ]);
+
+export const YOUTUBE_PLAYBACK_EXACT_HOSTS = new Set([
+  "youtube.com",
+  "www.youtube.com",
+  "m.youtube.com",
+  "music.youtube.com",
+  "youtu.be",
+  "youtube-nocookie.com",
+  "www.youtube-nocookie.com",
+  "youtubei.googleapis.com",
+  "googlevideo.com",
+  "ytimg.com",
+  "gstatic.com",
+  "ggpht.com",
+  "googleusercontent.com",
+]);
+
+export const YOUTUBE_PLAYBACK_HOST_SUFFIXES = [
+  ".googlevideo.com",
+  ".ytimg.com",
+  ".gstatic.com",
+  ".ggpht.com",
+  ".googleusercontent.com",
+] as const;
 
 export const DANGEROUS_PROTOCOLS = new Set(["javascript:", "data:", "vbscript:", "file:"]);
 

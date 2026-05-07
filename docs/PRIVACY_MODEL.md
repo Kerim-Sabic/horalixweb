@@ -47,7 +47,22 @@ The classifier supports:
 
 The bundled extension under `src-tauri/extensions/horalix-blocker/` uses declarativeNetRequest rules for subresource blocking where WebView2 extension support is available.
 
-### 5. Cosmetic Cleanup
+### 5. YouTube Playback-Safe Blocking
+
+`v3.0.1` adds explicit YouTube compatibility rules. Horalix keeps core playback hosts such as `youtube.com`, `youtu.be`, `youtube-nocookie.com`, `googlevideo.com`, `ytimg.com`, `gstatic.com`, `ggpht.com`, and `googleusercontent.com` out of broad blocking so videos can load and play.
+
+The blocker still targets known YouTube ad surfaces using conservative rules:
+
+- `ads.youtube.com`
+- `/pagead/`
+- `/api/stats/ads`
+- `/ptracking`
+- selected ad/log telemetry requests
+- visible player overlays, promoted renderers, companion ads, and skip buttons
+
+This is a playback-first design. Horalix will not broadly block `googlevideo.com` because that breaks normal videos.
+
+### 6. Cosmetic Cleanup
 
 The extension content script and native initialization script hide common ad containers after document start. These counts are tracked as cosmetic blocks, not guaranteed network blocks.
 
@@ -83,6 +98,6 @@ Known limits:
 
 - WebView2 extension support depends on runtime capability.
 - Some sites may break under maximum blocking.
-- YouTube ad blocking is best-effort only.
+- YouTube ad blocking is best-effort only; Horalix prioritizes actual video playback and avoids media-host blocks that break watch pages.
 - Cosmetic hiding does not mean the original network request was blocked.
 - Full EasyList/EasyPrivacy importing is planned but not implemented in this pass.

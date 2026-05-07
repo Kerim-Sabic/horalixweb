@@ -1,6 +1,12 @@
 import { isDangerousProtocol as isDangerousBrowserProtocol } from "../browser/url";
 import { getHostFromUrl, isHostAllowlisted, normalizeHost } from "./allowlist";
-import { AD_HOSTS, SOCIAL_TRACKER_HOSTS, TRACKER_HOSTS } from "./rules";
+import {
+  AD_HOSTS,
+  SOCIAL_TRACKER_HOSTS,
+  TRACKER_HOSTS,
+  YOUTUBE_PLAYBACK_EXACT_HOSTS,
+  YOUTUBE_PLAYBACK_HOST_SUFFIXES,
+} from "./rules";
 import type { BlockDecision, PrivacyBlockerSettings } from "./types";
 
 export const MAXIMUM_PRIVACY_SETTINGS: PrivacyBlockerSettings = {
@@ -27,6 +33,10 @@ export function classifyNavigation(
 
   const host = getHostFromUrl(url);
   if (!host || isHostAllowlisted(host, allowlist)) return { blocked: false, host };
+
+  if (isYouTubePlaybackHost(host)) {
+    return { blocked: false, host };
+  }
 
   if (settings.blockAds && matchesHostSet(host, AD_HOSTS)) {
     return {
@@ -68,4 +78,11 @@ export function matchesHostSet(host: string, rules: ReadonlySet<string>) {
     if (rules.has(cursor)) return true;
   }
   return false;
+}
+
+export function isYouTubePlaybackHost(host: string) {
+  const normalized = normalizeHost(host);
+  if (!normalized) return false;
+  if (YOUTUBE_PLAYBACK_EXACT_HOSTS.has(normalized)) return true;
+  return YOUTUBE_PLAYBACK_HOST_SUFFIXES.some((suffix) => normalized.endsWith(suffix));
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { classifyNavigation } from "./blocker";
+import { classifyNavigation, isYouTubePlaybackHost } from "./blocker";
 import { createPrivacyStats, incrementPrivacyStats, totalPrivacyStats } from "./stats";
 
 describe("privacy blocker", () => {
@@ -14,6 +14,20 @@ describe("privacy blocker", () => {
     const decision = classifyNavigation("https://stats.g.doubleclick.net/pagead/id");
     expect(decision.blocked).toBe(true);
     expect(decision.category).toBe("ad");
+  });
+
+  it("blocks known YouTube ad hosts", () => {
+    const decision = classifyNavigation("https://ads.youtube.com/");
+    expect(decision.blocked).toBe(true);
+    expect(decision.category).toBe("ad");
+  });
+
+  it("allows YouTube playback pages and media hosts", () => {
+    expect(classifyNavigation("https://www.youtube.com/watch?v=dQw4w9WgXcQ").blocked).toBe(false);
+    expect(classifyNavigation("https://googlevideo.com/videoplayback").blocked).toBe(false);
+    expect(classifyNavigation("https://rr1---sn-ab5l6n6s.googlevideo.com/videoplayback").blocked).toBe(false);
+    expect(classifyNavigation("https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg").blocked).toBe(false);
+    expect(isYouTubePlaybackHost("ads.youtube.com")).toBe(false);
   });
 
   it("allows allowlisted hosts", () => {

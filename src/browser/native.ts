@@ -11,6 +11,18 @@ import type {
 
 export const isTauriRuntime = "__TAURI_INTERNALS__" in window;
 
+export function minimizeMainWindow() {
+  return invoke<void>("minimize_main_window");
+}
+
+export function toggleMaximizeMainWindow() {
+  return invoke<void>("toggle_maximize_main_window");
+}
+
+export function closeMainWindow() {
+  return invoke<void>("close_main_window");
+}
+
 export function createBrowserTab(args: {
   label: string;
   input: string;

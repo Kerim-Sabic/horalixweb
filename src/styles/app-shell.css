@@ -89,6 +89,16 @@
   color: var(--text);
 }
 
+.window-button:disabled {
+  color: var(--text-faint);
+  opacity: 0.45;
+}
+
+.window-button:disabled:hover {
+  background: transparent;
+  color: var(--text-faint);
+}
+
 .window-button:focus-visible,
 .icon-button:focus-visible,
 .go-button:focus-visible,
