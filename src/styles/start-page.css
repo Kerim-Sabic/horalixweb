@@ -2,23 +2,23 @@
   display: grid;
   grid-template-rows: auto auto minmax(0, auto);
   align-content: center;
-  gap: 22px;
+  gap: 18px;
   width: 100%;
   height: 100%;
-  padding: 38px clamp(32px, 6vw, 88px);
+  padding: 30px clamp(32px, 5vw, 80px);
   overflow: auto;
 }
 
 .start-hero {
   display: grid;
   justify-items: center;
-  gap: 14px;
+  gap: 11px;
   text-align: center;
 }
 
 .start-mark {
-  width: 74px;
-  height: 74px;
+  width: 58px;
+  height: 58px;
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   background: var(--surface);
@@ -36,7 +36,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 28px;
+  height: 26px;
   padding: 0 10px;
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -49,7 +49,7 @@
 .start-hero h1 {
   margin: 0;
   color: var(--text);
-  font-size: 2.35rem;
+  font-size: 2rem;
   line-height: 1.1;
   letter-spacing: 0;
 }
@@ -59,11 +59,11 @@
   grid-template-columns: 26px minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
-  width: min(760px, 86vw);
-  height: 56px;
+  width: min(780px, 86vw);
+  height: 52px;
   padding: 0 8px 0 18px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: 18px;
   background: var(--surface);
   box-shadow: var(--shadow-medium);
   transition:
@@ -104,7 +104,7 @@
 }
 
 .start-omnibox button {
-  height: 40px;
+  height: 36px;
   padding: 0 18px;
   border: 0;
   border-radius: var(--radius-md);
@@ -139,17 +139,17 @@
 .start-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(104px, 1fr));
-  gap: 10px;
-  width: min(760px, 86vw);
+  gap: 9px;
+  width: min(780px, 86vw);
   margin: 0 auto;
 }
 
 .quick-action {
   display: grid;
   justify-items: start;
-  gap: 10px;
-  min-height: 84px;
-  padding: 14px;
+  gap: 9px;
+  min-height: 76px;
+  padding: 13px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: color-mix(in oklch, var(--surface), transparent 7%);
@@ -170,8 +170,8 @@
 
 .quick-action span {
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   place-items: center;
   border: 1px solid color-mix(in oklch, var(--accent), transparent 60%);
   border-radius: var(--radius-md);
@@ -186,7 +186,7 @@
 .start-lower {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.9fr);
-  gap: 14px;
+  gap: 12px;
   width: min(900px, 90vw);
   margin: 0 auto;
 }
@@ -194,9 +194,9 @@
 .privacy-card,
 .recent-card {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   min-width: 0;
-  padding: 16px;
+  padding: 14px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);

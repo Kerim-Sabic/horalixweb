@@ -29,4 +29,15 @@ export type NativeTitleEvent = {
 export type NativePrivacyEvent = {
   label: string;
   blockedCount: number;
+  blockerHealth?: string;
+};
+
+export type BlockerHealth = {
+  mode: "extension-ready" | "extension-loaded" | "fallback" | string;
+  extensionRoot: string | null;
+  manifestFound: boolean;
+  rulesFound: boolean;
+  contentScriptFound: boolean;
+  youtubeScriptFound: boolean;
+  message: string;
 };

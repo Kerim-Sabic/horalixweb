@@ -1,11 +1,12 @@
 {
   "name": "horalix-web",
   "private": true,
-  "version": "3.0.1",
+  "version": "3.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "generate:dnr": "node scripts/generate-dnr-rules.mjs",
     "test": "vitest run",
     "preview": "vite preview",
     "tauri": "tauri",

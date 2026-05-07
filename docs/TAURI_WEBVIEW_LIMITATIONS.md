@@ -8,6 +8,7 @@ Horalix Web uses Tauri v2 and Windows WebView2 for real page rendering. This giv
 - Sites that block iframes are not loaded in an iframe.
 - Private tabs use WebView incognito mode.
 - WebView2 extension loading is enabled for the bundled Horalix blocker.
+- The shield can report whether extension resources are present and whether content scripts marked the active page as loaded.
 - Native navigation, reload, history back/forward, resize, focus, hide, close, clear-data, and titlebar window controls are wired.
 - Popups/new windows are denied by default.
 
@@ -22,12 +23,14 @@ Important gaps:
 - Back/forward availability is approximated in frontend state because WebView2 history length is not exposed as a simple cross-platform event in this app.
 - `window.stop()` is used for Stop loading because there is no richer stop API in the current native bridge.
 - WebView2 browser extensions are not identical to Chrome extension support in every edge case.
-- YouTube ad blocking is best-effort only. Horalix keeps YouTube media hosts allowed because blocking them breaks normal watch-page playback.
+- YouTube ad blocking is best-effort only. Horalix keeps YouTube media hosts allowed and does not force video seek/playback speed because those approaches break normal watch-page playback.
 - External-open behavior is intentionally conservative and not wired to an OS opener plugin yet.
 
-## v3.0.1 Window Control Fix
+## v3.1.0 Recovery Fixes
 
-The custom titlebar now keeps drag regions only on non-button titlebar areas. The minimize, maximize/restore, and close buttons call dedicated Rust commands, and the Tauri capability file grants the explicit window permissions those controls need.
+The custom titlebar keeps drag regions only on non-button titlebar areas. The minimize, maximize/restore, and close buttons call dedicated Rust commands, and the Tauri capability file grants the explicit window permissions those controls need.
+
+Release builds use Rust's Windows GUI subsystem attribute so launching `horalix-web.exe` does not open a separate console window. The build remains unsigned, so Windows SmartScreen can still warn until the project uses trusted code signing or Microsoft Store distribution.
 
 ## Design Decision
 

@@ -6,9 +6,9 @@ Status legend: PASS means the control is visible where appropriate, calls a real
 
 | Control ID | Label | Component/File | Expected Behavior | Handler | Disabled Logic | Shortcut | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `window.minimize` | Minimize | `WindowControls` / `src/App.tsx` | Minimize native window | `handleMinimizeWindow` | Enabled in Tauri; disabled in web preview | Alt+Space then N | PASS | v3.0.1 uses native Rust command plus explicit Tauri permission |
-| `window.maximize` | Maximize/restore | `WindowControls` / `src/App.tsx` | Toggle native maximized state | `handleToggleMaximizeWindow` | Enabled in Tauri; disabled in web preview | Alt+Space then X | PASS | v3.0.1 uses native Rust command plus explicit Tauri permission |
-| `window.close` | Close window | `WindowControls` / `src/App.tsx` | Close native window | `handleCloseWindow` | Enabled in Tauri; disabled in web preview | Alt+F4 | PASS | v3.0.1 uses native Rust command plus explicit Tauri permission |
+| `window.minimize` | Minimize | `WindowControls` / `src/App.tsx` | Minimize native window | `handleMinimizeWindow` | Enabled in Tauri; disabled in web preview | Alt+Space then N | PASS | Native Rust command plus explicit Tauri permission |
+| `window.maximize` | Maximize/restore | `WindowControls` / `src/App.tsx` | Toggle native maximized state | `handleToggleMaximizeWindow` | Enabled in Tauri; disabled in web preview | Alt+Space then X | PASS | Native Rust command plus explicit Tauri permission |
+| `window.close` | Close window | `WindowControls` / `src/App.tsx` | Close native window | `handleCloseWindow` | Enabled in Tauri; disabled in web preview | Alt+F4 | PASS | Native Rust command plus explicit Tauri permission |
 
 ## Tabs
 
@@ -36,7 +36,7 @@ Status legend: PASS means the control is visible where appropriate, calls a real
 | `nav.home` | Home | `Toolbar` / `src/App.tsx` | Open Horalix start page | `handleHome` | Always enabled | Alt+Home | PASS | Uses internal start URL |
 | `security.lock` | Security/lock indicator | `Toolbar` / `src/App.tsx` | Open site info panel | `handleToggleSiteInfo` | Always enabled | None | PASS | Shows HTTPS/internal state |
 | `omnibox.submit` | Open address | `Toolbar` / `src/App.tsx` | Normalize and open/search/block | `handleOmniboxSubmit` | Invalid input shows validation | Enter | PASS | Shared URL engine |
-| `privacy.shield` | Privacy shield | `Toolbar` / `src/App.tsx` | Open shield panel | `handleToggleShield` | Always enabled | None | PASS | Shows current-site counts |
+| `privacy.shield` | Privacy shield | `Toolbar` / `src/App.tsx` | Open shield panel | `handleToggleShield` | Always enabled | None | PASS | Shows current-site counts and extension/fallback health |
 | `theme.toggle` | Theme | `Toolbar` / `src/App.tsx` | Cycle System/Light/Dark | `handleCycleTheme` | Always enabled | None | PASS | Persists immediately |
 | `settings.open` | Settings | `Toolbar` / `src/App.tsx` | Open settings view | `handleOpenSettings` | Always enabled | Ctrl/Cmd+, | PASS | Replaces old dead more menu |
 
@@ -45,12 +45,20 @@ Status legend: PASS means the control is visible where appropriate, calls a real
 | Control ID | Label | Component/File | Expected Behavior | Handler | Disabled Logic | Shortcut | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `start.submit` | Start open/search | `StartPage` / `src/App.tsx` | Open/search with shared URL engine | `handleStartSubmit` | Always enabled | Enter | PASS | Same navigation path as toolbar |
-| `start.search` | Search | `StartPage` / `src/App.tsx` | Open default search provider | `handleOpenSearch` | Always enabled | None | PASS | Opens DuckDuckGo home by default |
+| `start.search` | Search | `StartPage` / `src/App.tsx` | Open default search provider | `handleOpenSearch` | Always enabled | None | PASS | Opens chosen provider home |
 | `start.github` | GitHub | `StartPage` / `src/App.tsx` | Open GitHub | `handleOpenGithub` | Always enabled | None | PASS | Opens `https://github.com` |
 | `start.example` | Example | `StartPage` / `src/App.tsx` | Open safe example site | `handleOpenExample` | Always enabled | None | PASS | Opens `https://example.com` |
 | `start.private` | Private | `StartPage` / `src/App.tsx` | Create private tab | `onCreatePrivate` | Always enabled | None | PASS | Private tab not persisted |
 | `start.settings` | Settings | `StartPage` / `src/App.tsx` | Open settings | `onOpenSettings` | Always enabled | None | PASS | Same view as toolbar settings |
 | `start.restore-recent` | Restore recent | `StartPage` / `src/App.tsx` | Restore last closed tab | `onRestoreClosed` | Disabled with no closed tabs | Ctrl/Cmd+Shift+T | PASS | Recent list opens real URLs |
+
+## First-Run Onboarding
+
+| Control ID | Label | Component/File | Expected Behavior | Handler | Disabled Logic | Shortcut | Status | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `onboarding.search.duckduckgo` | Use DuckDuckGo search | `SearchOnboarding` / `src/App.tsx` | Select DuckDuckGo and complete onboarding | `handleChooseSearchEngine` | Visible only before first choice | Keyboard focus | PASS | Persists settings schema v2 |
+| `onboarding.search.google` | Use Google search | `SearchOnboarding` / `src/App.tsx` | Select Google and complete onboarding | `handleChooseSearchEngine` | Visible only before first choice | Keyboard focus | PASS | Persists settings schema v2 |
+| `onboarding.search.brave` | Use Brave search | `SearchOnboarding` / `src/App.tsx` | Select Brave and complete onboarding | `handleChooseSearchEngine` | Visible only before first choice | Keyboard focus | PASS | Persists settings schema v2 |
 
 ## State Pages
 
@@ -94,5 +102,6 @@ Status legend: PASS means the control is visible where appropriate, calls a real
 - `src/dev/buttonRegistry.test.ts` verifies documented button IDs are unique and documented.
 - Runtime button registrations are exposed through `window.__HORALIX_BUTTONS__`.
 - `src-tauri/capabilities/default.json` explicitly grants close, minimize, toggle-maximize, drag, and maximized-state permissions.
+- `src-tauri/src/main.rs` uses the Windows GUI subsystem attribute for release builds so no console appears on launch.
 - The titlebar drag region excludes the window-control button area so clicks are not swallowed by native dragging.
 - `npm test` passed the button registry smoke tests.

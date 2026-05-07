@@ -233,6 +233,22 @@ export function getSearchUrl(query: string, engine: SearchEngine): string {
   }
 }
 
+export function getSearchHomeUrl(engine: SearchEngine): string {
+  if (engine.id === "google") return "https://www.google.com/";
+  if (engine.id === "brave") return "https://search.brave.com/";
+  if (engine.id === "bing") return "https://www.bing.com/";
+  if (engine.id === "duckduckgo") return FALLBACK_HOME_URL;
+
+  try {
+    const url = new URL(engine.searchUrl);
+    url.search = "";
+    url.hash = "";
+    return url.href;
+  } catch {
+    return FALLBACK_HOME_URL;
+  }
+}
+
 export function getDisplayUrl(url: string): string {
   if (!url) return "";
   if (url === INTERNAL_START_URL) return "New Tab";

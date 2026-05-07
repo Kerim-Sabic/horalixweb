@@ -3,6 +3,7 @@ import { listen } from "@tauri-apps/api/event";
 
 import type {
   BrowserBounds,
+  BlockerHealth,
   NativePrivacyEvent,
   NativeTabEvent,
   NativeTitleEvent,
@@ -21,6 +22,10 @@ export function toggleMaximizeMainWindow() {
 
 export function closeMainWindow() {
   return invoke<void>("close_main_window");
+}
+
+export function getBlockerHealth() {
+  return invoke<BlockerHealth>("get_blocker_health");
 }
 
 export function createBrowserTab(args: {

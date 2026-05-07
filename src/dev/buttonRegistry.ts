@@ -226,6 +226,30 @@ export const BUTTON_QA_DEFINITIONS: ButtonDefinition[] = [
     expectedBehavior: "Opens the settings view.",
   },
   {
+    id: "onboarding.search.duckduckgo",
+    label: "Use DuckDuckGo search",
+    component: "SearchOnboarding",
+    handlerName: "handleChooseSearch",
+    expectedDisabledLogic: "Visible only until the first-run choice is made.",
+    expectedBehavior: "Sets DuckDuckGo as the omnibox search provider and completes onboarding.",
+  },
+  {
+    id: "onboarding.search.google",
+    label: "Use Google search",
+    component: "SearchOnboarding",
+    handlerName: "handleChooseSearch",
+    expectedDisabledLogic: "Visible only until the first-run choice is made.",
+    expectedBehavior: "Sets Google as the omnibox search provider and completes onboarding.",
+  },
+  {
+    id: "onboarding.search.brave",
+    label: "Use Brave search",
+    component: "SearchOnboarding",
+    handlerName: "handleChooseSearch",
+    expectedDisabledLogic: "Visible only until the first-run choice is made.",
+    expectedBehavior: "Sets Brave Search as the omnibox search provider and completes onboarding.",
+  },
+  {
     id: "state.retry",
     label: "Retry / wake tab",
     component: "StatePage",
@@ -345,5 +369,13 @@ declare global {
       create1000Tabs: () => void;
       buttons: () => ButtonRegistryEntry[];
     };
+    __HORALIX_PERF__?: {
+      startupMs: number;
+      tabCount: number;
+      liveTabCount: number;
+      visibleTabCount: number;
+      activeTabStatus: string;
+    };
+    __HORALIX_BLOCKER__?: unknown;
   }
 }

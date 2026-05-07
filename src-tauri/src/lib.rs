@@ -33,6 +33,7 @@ struct TabEvent {
 struct PrivacyEvent {
     label: String,
     blocked_count: u32,
+    blocker_health: String,
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -50,6 +51,18 @@ struct NavigationDecision {
     blocked: bool,
     reason: Option<String>,
     blocked_count: u32,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct BlockerHealth {
+    mode: String,
+    extension_root: Option<String>,
+    manifest_found: bool,
+    rules_found: bool,
+    content_script_found: bool,
+    youtube_script_found: bool,
+    message: String,
 }
 
 #[tauri::command]
@@ -94,6 +107,11 @@ fn resolve_navigation_input(input: String) -> Result<NavigationDecision, String>
         reason,
         blocked_count: 0,
     })
+}
+
+#[tauri::command]
+fn get_blocker_health(app: tauri::AppHandle) -> BlockerHealth {
+    blocker_health(&app)
 }
 
 #[tauri::command]
@@ -165,7 +183,7 @@ async fn prewarm_browser_tab(
                 let label = label_for_page_title.clone();
                 let url = payload.url().to_string();
                 let _ = webview.eval_with_callback(
-                    "JSON.stringify({ title: document.title, hidden: window.__HORALIX_WEB__?.blockedCount?.() ?? 0 })",
+                    PAGE_HEALTH_EVAL,
                     move |payload| {
                         let payload = payload.trim_matches('"').replace("\\\"", "\"");
                         let parsed: serde_json::Value =
@@ -179,7 +197,12 @@ async fn prewarm_browser_tab(
                             .get("hidden")
                             .and_then(|value| value.as_u64())
                             .unwrap_or(0) as u32;
-                        merge_blocked_count(&title_app, &label, hidden);
+                        let blocker_health = parsed
+                            .get("blockerHealth")
+                            .and_then(|value| value.as_str())
+                            .unwrap_or("fallback")
+                            .to_string();
+                        merge_blocked_count(&title_app, &label, hidden, blocker_health);
                         let title = title.trim_matches('"').to_string();
                         let parsed_url = Url::parse(&url).unwrap_or_else(|_| about_blank());
                         emit_tab_event(&title_app, &label, &parsed_url, Some(title), TabStatus::Ready, None);
@@ -293,6 +316,7 @@ async fn create_browser_tab(
                 PrivacyEvent {
                     label: label_for_popup.clone(),
                     blocked_count: blocked_count(&label_for_popup),
+                    blocker_health: blocker_health(&popup_app).mode,
                 },
             );
             if is_blocked_top_level(&url) {
@@ -312,7 +336,7 @@ async fn create_browser_tab(
                 let label = label_for_page_title.clone();
                 let url = payload.url().to_string();
                 let _ = webview.eval_with_callback(
-                    "JSON.stringify({ title: document.title, hidden: window.__HORALIX_WEB__?.blockedCount?.() ?? 0 })",
+                    PAGE_HEALTH_EVAL,
                     move |payload| {
                     let payload = payload.trim_matches('"').replace("\\\"", "\"");
                     let parsed: serde_json::Value = serde_json::from_str(&payload).unwrap_or_default();
@@ -325,7 +349,12 @@ async fn create_browser_tab(
                         .get("hidden")
                         .and_then(|value| value.as_u64())
                         .unwrap_or(0) as u32;
-                    merge_blocked_count(&title_app, &label, hidden);
+                    let blocker_health = parsed
+                        .get("blockerHealth")
+                        .and_then(|value| value.as_str())
+                        .unwrap_or("fallback")
+                        .to_string();
+                    merge_blocked_count(&title_app, &label, hidden, blocker_health);
                     let title = title.trim_matches('"').to_string();
                     let parsed_url = Url::parse(&url).unwrap_or_else(|_| about_blank());
                     emit_tab_event(&title_app, &label, &parsed_url, Some(title), TabStatus::Ready, None);
@@ -554,6 +583,41 @@ fn extension_root(app: &tauri::AppHandle) -> Option<PathBuf> {
         .find(|path| path.join("horalix-blocker").join("manifest.json").is_file())
 }
 
+fn blocker_health(app: &tauri::AppHandle) -> BlockerHealth {
+    let extension_root = extension_root(app);
+    let extension_dir = extension_root
+        .as_ref()
+        .map(|root| root.join("horalix-blocker"));
+
+    let manifest_found = extension_dir
+        .as_ref()
+        .is_some_and(|path| path.join("manifest.json").is_file());
+    let rules_found = extension_dir
+        .as_ref()
+        .is_some_and(|path| path.join("rules.json").is_file());
+    let content_script_found = extension_dir
+        .as_ref()
+        .is_some_and(|path| path.join("content.js").is_file());
+    let youtube_script_found = extension_dir
+        .as_ref()
+        .is_some_and(|path| path.join("youtube.js").is_file());
+    let ready = manifest_found && rules_found && content_script_found && youtube_script_found;
+
+    BlockerHealth {
+        mode: if ready { "extension-ready" } else { "fallback" }.to_string(),
+        extension_root: extension_root.map(|path| path.display().to_string()),
+        manifest_found,
+        rules_found,
+        content_script_found,
+        youtube_script_found,
+        message: if ready {
+            "Bundled WebView2 extension resources are present; pages report loaded status after navigation.".to_string()
+        } else {
+            "Extension resources were not found, so Horalix is using native navigation checks and fallback cosmetic hiding.".to_string()
+        },
+    }
+}
+
 fn normalize_navigation_input(input: &str) -> Result<Url, String> {
     let trimmed = input.trim();
     if trimmed.is_empty() {
@@ -706,11 +770,12 @@ fn increment_blocked_count(app: &tauri::AppHandle, label: &str) {
         PrivacyEvent {
             label: label.to_string(),
             blocked_count: count,
+            blocker_health: blocker_health(app).mode,
         },
     );
 }
 
-fn merge_blocked_count(app: &tauri::AppHandle, label: &str, hidden_count: u32) {
+fn merge_blocked_count(app: &tauri::AppHandle, label: &str, hidden_count: u32, blocker_health: String) {
     let count = {
         let mut counts = match tab_block_counts().write() {
             Ok(counts) => counts,
@@ -725,6 +790,7 @@ fn merge_blocked_count(app: &tauri::AppHandle, label: &str, hidden_count: u32) {
         PrivacyEvent {
             label: label.to_string(),
             blocked_count: count,
+            blocker_health,
         },
     );
 }
@@ -735,6 +801,7 @@ fn about_blank() -> Url {
 
 const HORALIX_INIT_SCRIPT: &str = r#"
 (() => {
+  document.documentElement?.setAttribute("data-horalix-blocker", "fallback");
   Object.defineProperty(navigator, "webdriver", { get: () => undefined });
   const selectors = [
     "[id^='ad-']",
@@ -772,11 +839,20 @@ const HORALIX_INIT_SCRIPT: &str = r#"
     document.addEventListener("DOMContentLoaded", install, { once: true });
   }
   window.__HORALIX_WEB__ = {
+    mode: "fallback",
     privacy: "maximum",
     product: "Horalix Web",
     blockedCount: () => hiddenCount
   };
 })();
+"#;
+
+const PAGE_HEALTH_EVAL: &str = r#"
+JSON.stringify({
+  title: document.title,
+  hidden: window.__HORALIX_WEB__?.blockedCount?.() ?? 0,
+  blockerHealth: document.documentElement?.getAttribute("data-horalix-blocker") || window.__HORALIX_WEB__?.mode || "fallback"
+})
 "#;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -787,6 +863,7 @@ pub fn run() {
             toggle_maximize_main_window,
             close_main_window,
             resolve_navigation_input,
+            get_blocker_health,
             prewarm_browser_tab,
             create_browser_tab,
             navigate_browser_tab,

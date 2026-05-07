@@ -47,4 +47,9 @@ describe("button registry", () => {
     expect(capability.permissions).toContain("core:window:allow-toggle-maximize");
     expect(capability.permissions).toContain("core:window:allow-start-dragging");
   });
+
+  it("uses the Windows GUI subsystem in release so no console opens", () => {
+    const main = readFileSync(new URL("../../src-tauri/src/main.rs", import.meta.url), "utf8");
+    expect(main).toContain('cfg_attr(not(debug_assertions), windows_subsystem = "windows")');
+  });
 });

@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  FALLBACK_HOME_URL,
   INTERNAL_START_URL,
   SEARCH_ENGINES,
   getOriginLabel,
+  getSearchHomeUrl,
   isDangerousProtocol,
   isLikelyUrl,
   normalizeUrlInput,
@@ -60,5 +62,11 @@ describe("url engine", () => {
     expect(isLikelyUrl("intranet.local")).toBe(true);
     expect(isLikelyUrl("hello world")).toBe(false);
     expect(getOriginLabel("https://github.com/Kerim-Sabic/horalixweb")).toBe("github.com");
+  });
+
+  it("opens the selected provider home for start quick search", () => {
+    expect(getSearchHomeUrl(SEARCH_ENGINES.duckduckgo)).toBe(FALLBACK_HOME_URL);
+    expect(getSearchHomeUrl(SEARCH_ENGINES.google)).toBe("https://www.google.com/");
+    expect(getSearchHomeUrl(SEARCH_ENGINES.brave)).toBe("https://search.brave.com/");
   });
 });

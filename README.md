@@ -10,7 +10,7 @@
 
 ---
 
-Horalix Web is a desktop browser shell with real WebView2 rendering, a fast React chrome, privacy-first defaults, private tabs, sleeping tabs, and bundled ad/tracker blocking.
+Horalix Web is a desktop browser shell with real WebView2 rendering, a fast React chrome, first-run search choice, privacy-first defaults, private tabs, sleeping tabs, and bundled ad/tracker blocking.
 
 The Rust headless automation engine remains in the repository for scraping, CDP compatibility, and future power privacy features, but desktop pages are rendered by WebView2 for real browser compatibility.
 
@@ -20,17 +20,19 @@ The Rust headless automation engine remains in the repository for scraping, CDP 
 - Custom Horalix browser chrome
 - Tabs, private tabs, duplicate tab, restore closed tab, drag reorder, and pinned tabs
 - Address/search bar with robust URL normalization
+- First-run search choice: DuckDuckGo, Google, or Brave Search
 - Shared URL engine for toolbar and start-page omniboxes
 - Designed start, loading, blocked, error, sleeping, and settings states
 - Sleeping tab model for huge tab counts
 - Default live WebView cache size of 3
 - Private tabs excluded from persistence
 - Maximum privacy mode by default
-- Bundled MV3 WebView2 blocker extension
+- Bundled MV3 WebView2 blocker extension with health diagnostics
 - Top-level tracker blocking and dangerous protocol blocking
 - Per-site temporary privacy allowlist
 - Auto System/Light/Dark theme
 - Developer button registry exposed at `window.__HORALIX_BUTTONS__`
+- Dev diagnostics exposed at `window.__HORALIX_PERF__` and `window.__HORALIX_BLOCKER__`
 - 1000-tab stress action at `window.__HORALIX_DEV__.create1000Tabs()`
 
 ## Install
@@ -39,14 +41,16 @@ Windows builds are published at:
 
 https://github.com/Kerim-Sabic/horalixweb/releases
 
-Latest v3.0.1 hotfix assets:
+Latest v3.1.0 recovery assets:
 
 ```bash
-curl -LO https://github.com/Kerim-Sabic/horalixweb/releases/latest/download/Horalix-Web-v3.0.1.exe
-curl -LO https://github.com/Kerim-Sabic/horalixweb/releases/latest/download/Horalix-Web-v3.0.1-Setup.exe
+curl -LO https://github.com/Kerim-Sabic/horalixweb/releases/latest/download/Horalix-Web-v3.1.0.exe
+curl -LO https://github.com/Kerim-Sabic/horalixweb/releases/latest/download/Horalix-Web-v3.1.0-Setup.exe
 ```
 
 Windows uses the installed Evergreen WebView2 runtime.
+
+This release is unsigned. Windows SmartScreen may still show an "unrecognized app" warning until Horalix ships through Microsoft Store distribution or builds enough reputation through trusted code signing.
 
 ## Development
 
@@ -61,13 +65,14 @@ npm run tauri:dev
 ```bash
 npm run build
 npm test
+npm run generate:dnr
 npm run tauri:build
 ```
 
 The Tauri build creates:
 
 - `target/release/horalix-web.exe`
-- `target/release/bundle/nsis/Horalix Web_3.0.1_x64-setup.exe`
+- `target/release/bundle/nsis/Horalix Web_3.1.0_x64-setup.exe`
 
 ## Keyboard Shortcuts
 
@@ -98,7 +103,7 @@ Horalix Web uses layered privacy controls:
 - Rust native layer blocks known tracker hosts for WebView navigation.
 - Bundled WebView2 MV3 extension uses declarativeNetRequest rules where supported.
 - Cosmetic cleanup hides common ad containers.
-- YouTube uses playback-safe blocking: core video/static hosts stay allowed, while ad overlays, promoted slots, skip buttons, and ad telemetry receive best-effort mitigation.
+- YouTube uses playback-safe blocking: core video/static hosts stay allowed, while ad overlays, promoted slots, skip buttons, and clearly ad-specific endpoints receive best-effort mitigation.
 - Popups/new windows are denied by default.
 
 See [docs/PRIVACY_MODEL.md](docs/PRIVACY_MODEL.md).

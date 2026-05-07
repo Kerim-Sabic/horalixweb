@@ -6,8 +6,10 @@ export const SETTINGS_STORAGE_KEY = "horalix-web-settings-v1";
 
 export function parseSettings(value: unknown): AppSettings {
   if (!value || typeof value !== "object") return DEFAULT_SETTINGS;
-  const raw = value as Partial<AppSettings>;
-  if (raw.version !== SETTINGS_VERSION) return DEFAULT_SETTINGS;
+  const raw = value as Partial<Omit<AppSettings, "version">> & { version?: number };
+  const canMigrate = raw.version === 1 || raw.version === SETTINGS_VERSION;
+  if (!canMigrate) return DEFAULT_SETTINGS;
+  const isMigratedFromV1 = raw.version === 1;
 
   return {
     version: SETTINGS_VERSION,
@@ -28,6 +30,11 @@ export function parseSettings(value: unknown): AppSettings {
         typeof raw.search?.customSearchUrl === "string"
           ? raw.search.customSearchUrl
           : DEFAULT_SETTINGS.search.customSearchUrl,
+    },
+    onboarding: {
+      searchEngineChosen: isMigratedFromV1
+        ? false
+        : raw.onboarding?.searchEngineChosen ?? DEFAULT_SETTINGS.onboarding.searchEngineChosen,
     },
     privacy: {
       blockerEnabled: raw.privacy?.blockerEnabled ?? DEFAULT_SETTINGS.privacy.blockerEnabled,

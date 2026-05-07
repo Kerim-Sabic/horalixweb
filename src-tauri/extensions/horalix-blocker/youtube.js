@@ -29,10 +29,6 @@
   const state = {
     cosmetic: 0,
     skips: 0,
-    accelerated: 0,
-    wasAdShowing: false,
-    restoreMuted: false,
-    restoreRate: 1,
     scheduled: false,
     bridged: false
   };
@@ -78,45 +74,12 @@
     }
   }
 
-  function isAdShowing() {
-    const player = document.querySelector(".html5-video-player");
-    return Boolean(
-      player?.classList.contains("ad-showing") ||
-        document.querySelector(".ytp-ad-player-overlay,.ytp-ad-preview-container,.video-ads .ytp-ad-module")
-    );
-  }
-
-  function protectPlayback() {
-    const video = document.querySelector("video");
-    if (!(video instanceof HTMLVideoElement)) return;
-
-    if (isAdShowing()) {
-      if (!state.wasAdShowing) {
-        state.restoreMuted = video.muted;
-        state.restoreRate = video.playbackRate || 1;
-        state.wasAdShowing = true;
-      }
-      video.muted = true;
-      video.playbackRate = Math.max(video.playbackRate || 1, 8);
-      if (Number.isFinite(video.duration) && video.duration > 0 && video.duration < 180) {
-        video.currentTime = Math.max(video.currentTime, video.duration - 0.35);
-      }
-      state.accelerated += 1;
-      return;
-    }
-
-    if (state.wasAdShowing) {
-      video.muted = state.restoreMuted;
-      video.playbackRate = state.restoreRate;
-      state.wasAdShowing = false;
-    }
-  }
-
   function exposeStats() {
+    document.documentElement?.setAttribute("data-horalix-youtube", "playback-safe");
+    document.documentElement?.setAttribute("data-horalix-blocker", "extension-loaded");
     window.__HORALIX_YOUTUBE_BLOCKS__ = {
       cosmetic: state.cosmetic,
-      skips: state.skips,
-      accelerated: state.accelerated
+      skips: state.skips
     };
 
     if (state.bridged || !window.__HORALIX_WEB__) return;
@@ -127,8 +90,7 @@
       blockedCount: () =>
         (typeof originalBlockedCount === "function" ? originalBlockedCount() : 0) +
         state.cosmetic +
-        state.skips +
-        state.accelerated
+        state.skips
     };
     state.bridged = true;
   }
@@ -138,7 +100,6 @@
     hideSelectorMatches();
     hidePromotedRenderers();
     clickSkipButtons();
-    protectPlayback();
     exposeStats();
   }
 

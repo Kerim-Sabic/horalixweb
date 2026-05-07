@@ -49,7 +49,7 @@ The bundled extension under `src-tauri/extensions/horalix-blocker/` uses declara
 
 ### 5. YouTube Playback-Safe Blocking
 
-`v3.0.1` adds explicit YouTube compatibility rules. Horalix keeps core playback hosts such as `youtube.com`, `youtu.be`, `youtube-nocookie.com`, `googlevideo.com`, `ytimg.com`, `gstatic.com`, `ggpht.com`, and `googleusercontent.com` out of broad blocking so videos can load and play.
+`v3.1.0` keeps explicit YouTube compatibility rules. Horalix keeps core playback hosts such as `youtube.com`, `youtu.be`, `youtube-nocookie.com`, `googlevideo.com`, `ytimg.com`, `gstatic.com`, `ggpht.com`, and `googleusercontent.com` out of broad blocking so videos can load and play.
 
 The blocker still targets known YouTube ad surfaces using conservative rules:
 
@@ -57,10 +57,9 @@ The blocker still targets known YouTube ad surfaces using conservative rules:
 - `/pagead/`
 - `/api/stats/ads`
 - `/ptracking`
-- selected ad/log telemetry requests
 - visible player overlays, promoted renderers, companion ads, and skip buttons
 
-This is a playback-first design. Horalix will not broadly block `googlevideo.com` because that breaks normal videos.
+This is a playback-first design. Horalix will not broadly block `googlevideo.com`, force video seeking, or change playback speed because those tactics break normal videos.
 
 ### 6. Cosmetic Cleanup
 
@@ -75,6 +74,7 @@ The toolbar shield shows:
 - ads
 - trackers
 - cosmetic hides
+- WebView2 extension health/fallback status
 - allow-this-site control
 - manage rules shortcut
 
@@ -97,6 +97,7 @@ Horalix Web blocks a useful set of ads and trackers, but it does not claim impos
 Known limits:
 
 - WebView2 extension support depends on runtime capability.
+- The shield reports extension resource health and page-loaded markers, but it cannot make WebView2 expose the entire Chrome/Brave request interception surface.
 - Some sites may break under maximum blocking.
 - YouTube ad blocking is best-effort only; Horalix prioritizes actual video playback and avoids media-host blocks that break watch pages.
 - Cosmetic hiding does not mean the original network request was blocked.

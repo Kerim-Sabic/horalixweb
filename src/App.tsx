@@ -49,6 +49,7 @@ import {
   closeMainWindow,
   createBrowserTab as createNativeBrowserTab,
   disableSiteBlocking as disableNativeSiteBlocking,
+  getBlockerHealth,
   goBackBrowserTab,
   goForwardBrowserTab,
   isTauriRuntime,
@@ -56,7 +57,6 @@ import {
   onNativePrivacyEvent,
   onNativeTabEvent,
   onNativeTitleEvent,
-  prewarmBrowserTab,
   reloadBrowserTab,
   resizeBrowserTab,
   setActiveBrowserTab,
@@ -64,13 +64,14 @@ import {
   minimizeMainWindow,
   toggleMaximizeMainWindow,
 } from "./browser/native";
-import type { BrowserBounds, NativeTabEvent } from "./browser/types";
+import type { BlockerHealth, BrowserBounds, NativeTabEvent } from "./browser/types";
 import {
   FALLBACK_HOME_URL,
   INTERNAL_START_URL,
   faviconForUrl,
   getDisplayUrl,
   getOriginLabel,
+  getSearchHomeUrl,
   normalizeUrlInput,
 } from "./browser/url";
 import { createBrowserTab as createTabRecord } from "./browser/tabs/reducer";
@@ -88,6 +89,16 @@ import type { AppSettings, ThemeMode } from "./settings/types";
 const PRODUCT_NAME = "Horalix Web";
 type AppView = "browser" | "settings";
 type ValidationState = { tone: "danger" | "warning"; message: string } | null;
+
+const FALLBACK_BLOCKER_HEALTH: BlockerHealth = {
+  mode: "fallback",
+  extensionRoot: null,
+  manifestFound: false,
+  rulesFound: false,
+  contentScriptFound: false,
+  youtubeScriptFound: false,
+  message: "Native navigation checks and fallback cosmetic hiding are active.",
+};
 
 export default function App() {
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
@@ -108,7 +119,9 @@ export default function App() {
   const [siteInfoOpen, setSiteInfoOpen] = useState(false);
   const [tabOverflowOpen, setTabOverflowOpen] = useState(false);
   const [draggedTabId, setDraggedTabId] = useState<string | null>(null);
+  const [blockerHealth, setBlockerHealth] = useState<BlockerHealth>(FALLBACK_BLOCKER_HEALTH);
 
+  const appStartedAtRef = useRef(performance.now());
   const addressRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const tabsRef = useRef(state.tabs);
@@ -201,23 +214,10 @@ export default function App() {
 
   useEffect(() => {
     if (!isTauriRuntime || !browserBounds || appView !== "browser" || !activeTab) return;
+    if (activeTab.status === "start") return;
     if (activeTab.hasLiveWebview || hydratingLabelsRef.current.has(activeTab.webviewLabel)) return;
 
     const label = activeTab.webviewLabel;
-
-    if (activeTab.status === "start") {
-      hydratingLabelsRef.current.add(label);
-      const timer = window.setTimeout(() => {
-        void prewarmBrowserTab({
-          label,
-          bounds: browserBounds,
-          isPrivate: activeTab.isPrivate,
-        })
-          .then(() => updateTab(activeTab.id, { hasLiveWebview: true }))
-          .finally(() => hydratingLabelsRef.current.delete(label));
-      }, 120);
-      return () => window.clearTimeout(timer);
-    }
 
     if ((activeTab.status === "sleeping" || activeTab.status === "ready") && activeTab.url) {
       hydratingLabelsRef.current.add(label);
@@ -256,6 +256,13 @@ export default function App() {
         .finally(() => hydratingLabelsRef.current.delete(label));
     }
   }, [activeTab, appView, browserBounds, dispatch, updateTab]);
+
+  useEffect(() => {
+    if (!isTauriRuntime) return;
+    void getBlockerHealth()
+      .then(setBlockerHealth)
+      .catch(() => setBlockerHealth(FALLBACK_BLOCKER_HEALTH));
+  }, []);
 
   useEffect(() => {
     if (!isTauriRuntime) return;
@@ -318,7 +325,7 @@ export default function App() {
     }).then((fn) => {
       unsubscribeTitle = fn;
     });
-    void onNativePrivacyEvent(({ label, blockedCount }) => {
+    void onNativePrivacyEvent(({ label, blockedCount, blockerHealth: pageBlockerHealth }) => {
       const tab = tabsRef.current.find((candidate) => candidate.webviewLabel === label);
       if (tab) {
         dispatch({
@@ -332,6 +339,18 @@ export default function App() {
           },
         });
       }
+      void getBlockerHealth()
+        .then((health) =>
+          setBlockerHealth({
+            ...health,
+            mode: health.mode === "extension-ready" && pageBlockerHealth === "extension-loaded" ? "extension-loaded" : health.mode,
+            message:
+              pageBlockerHealth === "extension-loaded"
+                ? "WebView2 extension scripts reported loaded on the active page."
+                : health.message,
+          }),
+        )
+        .catch(() => undefined);
     }).then((fn) => {
       unsubscribePrivacy = fn;
     });
@@ -663,6 +682,24 @@ export default function App() {
     }));
   }, [updateSettings]);
 
+  const handleChooseSearchEngine = useCallback(
+    (engine: AppSettings["search"]["engine"]) => {
+      updateSettings((current) => ({
+        ...current,
+        search: {
+          ...current.search,
+          engine,
+        },
+        onboarding: {
+          ...current.onboarding,
+          searchEngineChosen: true,
+        },
+      }));
+      addressRef.current?.focus();
+    },
+    [updateSettings],
+  );
+
   const handleAllowActiveSite = useCallback(() => {
     if (!activeHost) return;
     updateSettings((current) => ({
@@ -717,11 +754,20 @@ export default function App() {
   }, [createManyTabs]);
 
   useEffect(() => {
+    if (!import.meta.env.DEV) return;
     window.__HORALIX_DEV__ = {
       create1000Tabs: handleCreate1000Tabs,
       buttons: () => window.__HORALIX_BUTTONS__ ?? [],
     };
-  }, [handleCreate1000Tabs]);
+    window.__HORALIX_PERF__ = {
+      startupMs: Math.round(performance.now() - appStartedAtRef.current),
+      tabCount: state.tabs.length,
+      liveTabCount: liveLabels.length,
+      visibleTabCount: visibleTabs.length,
+      activeTabStatus: activeTab?.status ?? "none",
+    };
+    window.__HORALIX_BLOCKER__ = blockerHealth;
+  }, [activeTab?.status, blockerHealth, handleCreate1000Tabs, liveLabels.length, state.tabs.length, visibleTabs.length]);
 
   const handleGlobalKeyDown = useCallback(
     (event: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -814,6 +860,7 @@ export default function App() {
 
   const productTitle = appView === "settings" ? "Settings" : activeTab?.title || PRODUCT_NAME;
   const activeSiteAllowed = Boolean(activeHost && settings.privacy.allowlist.includes(activeHost));
+  const shouldShowOnboarding = !settings.onboarding.searchEngineChosen;
 
   return (
     <div
@@ -848,6 +895,7 @@ export default function App() {
           activeSiteAllowed={activeSiteAllowed}
           activeTab={activeTab}
           addressRef={addressRef}
+          blockerHealth={blockerHealth}
           blockedCount={totalBlocked}
           omniboxValue={omniboxValue}
           shieldOpen={shieldOpen}
@@ -892,6 +940,7 @@ export default function App() {
           <PageSurface
             activeTab={activeTab}
             closedTabs={state.closedTabs}
+            blockerHealth={blockerHealth}
             settings={settings}
             validation={validation}
             onClearValidation={() => setValidation(null)}
@@ -903,7 +952,84 @@ export default function App() {
           />
         )}
       </main>
+
+      {shouldShowOnboarding ? <SearchOnboarding selectedEngine={settings.search.engine} onChoose={handleChooseSearchEngine} /> : null}
     </div>
+  );
+}
+
+function SearchOnboarding({
+  selectedEngine,
+  onChoose,
+}: {
+  selectedEngine: AppSettings["search"]["engine"];
+  onChoose: (engine: AppSettings["search"]["engine"]) => void;
+}) {
+  const choices: Array<{
+    id: "duckduckgo" | "google" | "brave";
+    label: string;
+    description: string;
+  }> = [
+    { id: "duckduckgo", label: "DuckDuckGo", description: "Private by default with clean search results." },
+    { id: "google", label: "Google", description: "Broadest index and familiar ranking." },
+    { id: "brave", label: "Brave", description: "Independent search with privacy-first defaults." },
+  ];
+
+  return (
+    <div className="onboarding-scrim" role="dialog" aria-modal="true" aria-label="Choose search engine">
+      <section className="onboarding-panel">
+        <img className="onboarding-mark" src="/icon.png" alt="" />
+        <span className="panel-kicker">First launch</span>
+        <h2>Choose your search engine</h2>
+        <p>Horalix uses this provider for the start page and every omnibox search. You can change it later in Settings.</p>
+        <div className="search-choice-grid">
+          {choices.map((choice) => (
+            <SearchChoiceButton
+              key={choice.id}
+              choice={choice}
+              selected={selectedEngine === choice.id}
+              onChoose={onChoose}
+            />
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function SearchChoiceButton({
+  choice,
+  onChoose,
+  selected,
+}: {
+  choice: {
+    id: "duckduckgo" | "google" | "brave";
+    label: string;
+    description: string;
+  };
+  onChoose: (engine: AppSettings["search"]["engine"]) => void;
+  selected: boolean;
+}) {
+  const handleChoose = useCallback(() => onChoose(choice.id), [choice.id, onChoose]);
+  useButtonRegistration({
+    id: `onboarding.search.${choice.id}`,
+    label: `Use ${choice.label} search`,
+    component: "SearchOnboarding",
+    handler: handleChoose,
+    disabled: false,
+  });
+
+  return (
+    <button
+      type="button"
+      aria-label={`Use ${choice.label} search`}
+      aria-pressed={selected}
+      className={selected ? "selected" : ""}
+      onClick={handleChoose}
+    >
+      <strong>{choice.label}</strong>
+      <span>{choice.description}</span>
+    </button>
   );
 }
 
@@ -1157,6 +1283,7 @@ function Toolbar({
   activeSiteAllowed,
   activeTab,
   addressRef,
+  blockerHealth,
   blockedCount,
   omniboxValue,
   shieldOpen,
@@ -1186,6 +1313,7 @@ function Toolbar({
   activeSiteAllowed: boolean;
   activeTab?: BrowserTab;
   addressRef: RefObject<HTMLInputElement | null>;
+  blockerHealth: BlockerHealth;
   blockedCount: number;
   omniboxValue: string;
   shieldOpen: boolean;
@@ -1295,6 +1423,7 @@ function Toolbar({
               activeHost={activeHost}
               activeSiteAllowed={activeSiteAllowed}
               activeTab={activeTab}
+              blockerHealth={blockerHealth}
               blockedCount={blockedCount}
               onAllowSite={onAllowSite}
               onOpenSettings={onOpenSettings}
@@ -1340,6 +1469,7 @@ function ShieldPanel({
   activeHost,
   activeSiteAllowed,
   activeTab,
+  blockerHealth,
   blockedCount,
   onAllowSite,
   onOpenSettings,
@@ -1347,6 +1477,7 @@ function ShieldPanel({
   activeHost: string;
   activeSiteAllowed: boolean;
   activeTab?: BrowserTab;
+  blockerHealth: BlockerHealth;
   blockedCount: number;
   onAllowSite: () => void;
   onOpenSettings: () => void;
@@ -1365,6 +1496,10 @@ function ShieldPanel({
         <Metric label="Trackers" value={activeTab?.blockStats.trackers ?? 0} />
         <Metric label="Cosmetic" value={activeTab?.blockStats.cosmetic ?? 0} />
         <Metric label="Total" value={blockedCount} />
+      </div>
+      <div className={`shield-health ${blockerHealth.mode === "extension-loaded" ? "loaded" : ""}`}>
+        <span>{blockerHealth.mode === "extension-loaded" ? "Extension loaded" : "Playback-safe mode"}</span>
+        <p>{blockerHealth.message}</p>
       </div>
       <button className="panel-action" type="button" aria-label="Allow this site until restart" disabled={!activeHost || activeSiteAllowed} onClick={onAllowSite}>
         {activeSiteAllowed ? <Check size={15} /> : <Zap size={15} />}
@@ -1389,6 +1524,7 @@ function Metric({ label, value }: { label: string; value: number }) {
 
 function PageSurface({
   activeTab,
+  blockerHealth,
   closedTabs,
   settings,
   validation,
@@ -1400,6 +1536,7 @@ function PageSurface({
   onRestoreClosed,
 }: {
   activeTab?: BrowserTab;
+  blockerHealth: BlockerHealth;
   closedTabs: BrowserTab[];
   settings: AppSettings;
   validation: ValidationState;
@@ -1459,6 +1596,7 @@ function PageSurface({
   return (
     <StartPage
       closedTabs={closedTabs}
+      blockerHealth={blockerHealth}
       settings={settings}
       validation={validation}
       onClearValidation={onClearValidation}
@@ -1471,6 +1609,7 @@ function PageSurface({
 }
 
 function StartPage({
+  blockerHealth,
   closedTabs,
   settings,
   validation,
@@ -1480,6 +1619,7 @@ function StartPage({
   onOpenSettings,
   onRestoreClosed,
 }: {
+  blockerHealth: BlockerHealth;
   closedTabs: BrowserTab[];
   settings: AppSettings;
   validation: ValidationState;
@@ -1499,7 +1639,7 @@ function StartPage({
     },
     [onNavigate, value],
   );
-  const handleOpenSearch = useCallback(() => onNavigate(FALLBACK_HOME_URL), [onNavigate]);
+  const handleOpenSearch = useCallback(() => onNavigate(getSearchHomeUrl(getSearchEngine(settings))), [onNavigate, settings]);
   const handleOpenGithub = useCallback(() => onNavigate("https://github.com"), [onNavigate]);
   const handleOpenExample = useCallback(() => onNavigate("https://example.com"), [onNavigate]);
   useButtonRegistration({
@@ -1561,9 +1701,9 @@ function StartPage({
         <div className="privacy-card">
           <div>
             <span className="panel-kicker">Privacy shield</span>
-            <strong>Maximum blocking is active</strong>
+            <strong>{blockerHealth.mode === "extension-loaded" ? "Extension blocking loaded" : "Playback-first blocking is active"}</strong>
           </div>
-          <p>Ads, trackers, dangerous protocols, popups, and common annoyance containers are blocked using native checks plus bundled WebView2 extension rules.</p>
+          <p>{blockerHealth.message} YouTube uses conservative rules so real video playback stays intact.</p>
         </div>
         <div className="recent-card">
           <div className="recent-header">
@@ -1930,7 +2070,7 @@ function SettingsView({
           />
         </SettingsSection>
 
-        <SettingsSection title="About" description="Horalix Web 3.0.1">
+        <SettingsSection title="About" description="Horalix Web 3.1.0">
           <ul className="shortcut-list">
             <li>Ctrl/Cmd+L focuses the omnibox</li>
             <li>Ctrl/Cmd+T opens a tab</li>

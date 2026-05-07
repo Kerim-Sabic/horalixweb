@@ -13,6 +13,7 @@ const HIDE_SELECTORS = [
 ];
 
 function injectCosmeticCss() {
+  document.documentElement?.setAttribute("data-horalix-blocker", "extension-loaded");
   const style = document.createElement("style");
   style.textContent = `${HIDE_SELECTORS.join(",")}{display:none!important;visibility:hidden!important;}`;
   (document.documentElement || document.head).appendChild(style);

@@ -1,6 +1,6 @@
 import type { SearchEngineId } from "../browser/url";
 
-export const SETTINGS_VERSION = 1;
+export const SETTINGS_VERSION = 2;
 
 export type ThemeMode = "system" | "light" | "dark";
 
@@ -13,6 +13,9 @@ export type AppSettings = {
   search: {
     engine: SearchEngineId;
     customSearchUrl: string;
+  };
+  onboarding: {
+    searchEngineChosen: boolean;
   };
   privacy: {
     blockerEnabled: boolean;

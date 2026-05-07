@@ -12,6 +12,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
     engine: "duckduckgo",
     customSearchUrl: "https://duckduckgo.com/?q={searchTerms}",
   },
+  onboarding: {
+    searchEngineChosen: false,
+  },
   privacy: {
     blockerEnabled: true,
     blockAds: true,
